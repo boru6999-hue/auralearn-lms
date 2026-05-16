@@ -34,7 +34,7 @@ const INIT_USERS = [
 ];
 
 export default function UsersPage() {
-  const { a } = useLang();
+  
   const [users, setUsers] = useState(INIT_USERS);
   const { lang } = useLang();
   const [search, setSearch] = useState("");
@@ -125,3 +125,4 @@ export default function UsersPage() {
     </AdminLayout>
   );
 }
+
