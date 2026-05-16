@@ -48,25 +48,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
+      // Allow credentials login
+      if (account?.provider === "credentials") return true;
+      
+      // OAuth login
       if (account?.provider === "github" || account?.provider === "google") {
-        await connectDB();
-        const existing = await User.findOne({ email: user.email });
-        if (!existing) {
-          const created = await User.create({
-            name: user.name || user.email,
-            email: user.email,
-            passwordHash: "",
-            role: "student",
-            image: user.image || "",
-          });
-          user.id = created._id.toString();
-          (user as any).role = "student";
-        } else {
-          user.id = existing._id.toString();
-          (user as any).role = existing.role || "student";
-          if ((!existing.image || existing.image.length < 500) && user.image) {
-            await User.findByIdAndUpdate(existing._id, { image: user.image });
+        try {
+          await connectDB();
+          const existing = await User.findOne({ email: user.email });
+          if (!existing) {
+            const created = await User.create({
+              name: user.name || user.email,
+              email: user.email,
+              passwordHash: "",
+              role: "student",
+              image: user.image || "",
+            });
+            user.id = created._id.toString();
+            (user as any).role = "student";
+          } else {
+            user.id = existing._id.toString();
+            (user as any).role = existing.role || "student";
+            if ((!existing.image || existing.image.length < 500) && user.image) {
+              await User.findByIdAndUpdate(existing._id, { image: user.image });
+            }
           }
+          return true;
+        } catch (e) {
+          console.error("OAuth signIn error:", e);
+          return true; // Still allow login even if DB fails
         }
       }
       return true;
@@ -91,4 +101,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   pages: { signIn: "/auth/login" },
-});
+  trustHost: true,
+}); 
