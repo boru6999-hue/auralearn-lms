@@ -2,11 +2,18 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Course from "@/models/Course";
 
-export async function GET(req: Request, { params }: { params: { slug: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
   try {
+    const { slug } = await params;
     await connectDB();
     const course = await Course.findOne({
-      $or: [{ slug: params.slug }, { _id: params.slug.length === 24 ? params.slug : null }]
+      $or: [
+        { slug },
+        { _id: slug.length === 24 ? slug : null }
+      ]
     }).lean();
     if (!course) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(course);
