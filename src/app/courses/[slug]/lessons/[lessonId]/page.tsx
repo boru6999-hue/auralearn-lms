@@ -38,7 +38,7 @@ export default async function LessonPage({
       <div style={{ display: "flex", maxWidth: "1200px", margin: "0 auto", padding: "2rem 1rem", gap: "2rem" }}>
 
         {/* Sidebar */}
-        <aside style={{ width: "280px", shrink: 0, flexShrink: 0 }}>
+        <aside style={{ width: "280px", flexShrink: 0 }}>
           <Link href={`/courses/${params.slug}`} style={{ color: "#8b5cf6", textDecoration: "none", fontSize: "0.85rem", display: "block", marginBottom: "1rem" }}>
             ← Буцах
           </Link>
