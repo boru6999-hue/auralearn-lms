@@ -1,0 +1,34 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Default dark */
+body { background: #000; color: #fff; }
+
+html[data-theme="light"] body,
+body.theme-light {
+  background: #f5f5f5 !important;
+  color: #000 !important;
+}
+
+html[data-theme="dark"] body,
+body.theme-dark,
+body {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* Navbar light mode */
+html[data-theme="light"] nav,
+body.theme-light nav {
+  background: rgba(255,255,255,0.97) !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+}
+
+/* Smooth transition after mount */
+body.theme-ready {
+  transition: background 0.25s ease, color 0.25s ease;
+}
