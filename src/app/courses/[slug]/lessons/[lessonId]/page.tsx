@@ -1,37 +1,46 @@
 import { connectDB } from "@/lib/db";
-import Lesson from "@/models/Lesson";
 import Course from "@/models/Course";
-import Enrollment from "@/models/Enrollment";
 import Progress from "@/models/Progress";
 import { auth } from "@/lib/auth";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import LessonContent from "@/components/course/LessonContent";
 
 export default async function LessonPage({
   params,
 }: {
-  params: { slug: string; lessonId: string };
+  params: Promise<{ slug: string; lessonId: string }>;
 }) {
+  const { slug, lessonId } = await params;
   const session = await auth();
   if (!session) redirect("/auth/login");
 
   await connectDB();
 
-  const lesson = await Lesson.findById(params.lessonId).lean() as any;
-  if (!lesson) notFound();
-
-  const course = await Course.findOne({ slug: params.slug }).lean() as any;
+  const course = await Course.findOne({ slug }).lean() as any;
   if (!course) notFound();
 
-  if (!lesson.isFree && course.price > 0) {
-    const enrollment = await Enrollment.findOne({ userId: session.user.id, courseId: course._id });
-    if (!enrollment) redirect(`/courses/${params.slug}?needsEnrollment=1`);
+  // Find lesson from sections
+  let lesson: any = null;
+  for (const sec of course.sections || []) {
+    for (const les of sec.lessons || []) {
+      if (les._id?.toString() === lessonId) { lesson = les; break; }
+    }
+    if (lesson) break;
   }
+  if (!lesson) notFound();
 
-  const lessons = await Lesson.find({ courseId: course._id }).sort({ order: 1 }).lean() as any[];
-  const progress = await Progress.find({ userId: session.user.id, courseId: course._id }).lean() as any[];
-  const completedIds = progress.filter((p) => p.completed).map((p) => p.lessonId.toString());
+  // All lessons flat list
+  const allLessons = (course.sections || []).flatMap((s: any) => s.lessons || []);
+
+  // Progress
+  const progress = await Progress.findOne({
+    userId: (session.user as any).id,
+    courseId: course._id,
+  }).lean() as any;
+
+  const completedIds = (progress?.lessons || [])
+    .filter((l: any) => l.completed)
+    .map((l: any) => l.lessonId?.toString());
 
   return (
     <div style={{ minHeight: "100vh", background: "#0a0a0f" }}>
@@ -39,24 +48,23 @@ export default async function LessonPage({
 
         {/* Sidebar */}
         <aside style={{ width: "280px", flexShrink: 0 }}>
-          <Link href={`/courses/${params.slug}`} style={{ color: "#8b5cf6", textDecoration: "none", fontSize: "0.85rem", display: "block", marginBottom: "1rem" }}>
+          <Link href={`/courses/${slug}`} style={{ color: "#8b5cf6", textDecoration: "none", fontSize: "0.85rem", display: "block", marginBottom: "1rem" }}>
             ← Буцах
           </Link>
-          <h2 style={{ fontSize: "0.9rem", fontWeight: 700, color: "#f1f0ff", fontFamily: "var(--font-orbitron)", marginBottom: "1rem", letterSpacing: "0.05em" }}>
+          <h2 style={{ fontSize: "0.9rem", fontWeight: 700, color: "#f1f0ff", marginBottom: "1rem" }}>
             {course.title}
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            {lessons.map((l, index) => {
-              const isActive = l._id.toString() === params.lessonId;
-              const isDone = completedIds.includes(l._id.toString());
+            {allLessons.map((l: any, index: number) => {
+              const isActive = l._id?.toString() === lessonId;
+              const isDone = completedIds.includes(l._id?.toString());
               return (
-                <Link key={l._id.toString()} href={`/courses/${params.slug}/lessons/${l._id}`} style={{ textDecoration: "none" }}>
+                <Link key={l._id?.toString() || index} href={`/courses/${slug}/lessons/${l._id}`} style={{ textDecoration: "none" }}>
                   <div style={{
                     display: "flex", alignItems: "center", gap: "0.75rem",
                     padding: "0.6rem 0.75rem", borderRadius: "8px",
                     background: isActive ? "#7c3aed20" : "transparent",
                     border: isActive ? "1px solid #7c3aed50" : "1px solid transparent",
-                    transition: "all 0.2s",
                   }}>
                     <span style={{ fontSize: "0.75rem", color: isDone ? "#34d399" : "#94a3b8", fontWeight: 700 }}>
                       {isDone ? "✓" : String(index + 1).padStart(2, "0")}
@@ -73,28 +81,40 @@ export default async function LessonPage({
 
         {/* Main */}
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: "1.5rem", fontWeight: 900, fontFamily: "var(--font-orbitron)", color: "#f1f0ff", marginBottom: "1.5rem" }}>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 900, color: "#f1f0ff", marginBottom: "1.5rem" }}>
             {lesson.title}
           </h1>
 
-          {lesson.videoType === "youtube" ? (
+          {lesson.videoUrl && (
             <div style={{ aspectRatio: "16/9", width: "100%", marginBottom: "1.5rem", borderRadius: "12px", overflow: "hidden", border: "1px solid #1e1e3a" }}>
-              <iframe
-                src={`https://www.youtube.com/embed/${lesson.videoUrl}`}
-                style={{ width: "100%", height: "100%" }}
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
-              />
+              {lesson.videoUrl.includes("youtube") || lesson.videoUrl.includes("youtu.be") ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${lesson.videoUrl.match(/(?:v=|youtu\.be\/)([^&\s]+)/)?.[1]}`}
+                  style={{ width: "100%", height: "100%" }}
+                  allowFullScreen
+                />
+              ) : (
+                <video src={lesson.videoUrl} controls style={{ width: "100%", height: "100%" }} />
+              )}
             </div>
-          ) : (
-            <video src={lesson.videoUrl} controls style={{ width: "100%", borderRadius: "12px", marginBottom: "1.5rem", border: "1px solid #1e1e3a" }} />
           )}
 
-          <LessonContent
-            lessonId={params.lessonId}
-            courseId={course._id.toString()}
-            isCompleted={completedIds.includes(params.lessonId)}
-          />
+          {lesson.description && (
+            <p style={{ color: "#94a3b8", fontSize: "1rem", lineHeight: 1.7, marginBottom: "1.5rem" }}>
+              {lesson.description}
+            </p>
+          )}
+
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <span style={{
+              padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 600,
+              background: completedIds.includes(lessonId) ? "rgba(52,211,153,0.15)" : "rgba(124,58,237,0.15)",
+              color: completedIds.includes(lessonId) ? "#34d399" : "#a78bfa",
+              border: `1px solid ${completedIds.includes(lessonId) ? "rgba(52,211,153,0.3)" : "rgba(124,58,237,0.3)"}`,
+            }}>
+              {completedIds.includes(lessonId) ? "✓ Дүүргэсэн" : "Дүүргээгүй"}
+            </span>
+          </div>
         </div>
       </div>
     </div>
