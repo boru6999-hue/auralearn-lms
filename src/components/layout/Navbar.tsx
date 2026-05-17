@@ -8,7 +8,7 @@ import { useRouter, usePathname } from "next/navigation";
 
 export default function Navbar() {
   const { data: session } = useSession();
-  const { lang, setLang } = useLang();
+  const { lang } = useLang();
   const { isDark, toggle, mounted } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
@@ -139,7 +139,13 @@ export default function Navbar() {
             {langOpen&&(
               <div style={{ position:"absolute", top:"calc(100% + 6px)", right:0, background:DROP, border:`1px solid ${BORDER}`, borderRadius:"10px", padding:"6px", minWidth:"140px", boxShadow:"0 8px 30px rgba(0,0,0,0.15)", zIndex:300 }}>
                 {LANGS.map(l=>(
-                  <button key={l.code} onClick={()=>{setLang(l.code as any);setLangOpen(false);}} style={{ width:"100%", background:lang===l.code?HOVER:"transparent", border:"none", color:TEXT, padding:"7px 12px", borderRadius:"6px", cursor:"pointer", fontSize:"12px", textAlign:"left", display:"flex", alignItems:"center", gap:"6px" }}>
+                  <button key={l.code} onClick={()=>{
+                    const newLang = l.code;
+                    localStorage.setItem("aura_lang", newLang);
+                    document.cookie = `aura_lang=${newLang};path=/;max-age=31536000`;
+                    window.dispatchEvent(new CustomEvent("langChange", { detail: newLang }));
+                    setLangOpen(false);
+                  }} style={{ width:"100%", background:lang===l.code?HOVER:"transparent", border:"none", color:TEXT, padding:"7px 12px", borderRadius:"6px", cursor:"pointer", fontSize:"12px", textAlign:"left", display:"flex", alignItems:"center", gap:"6px" }}>
                     {l.label}
                   </button>
                 ))}
