@@ -5,30 +5,75 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Default dark */
 body { background: #000; color: #fff; }
 
-html[data-theme="light"] body,
-body.theme-light {
-  background: #f5f5f5 !important;
-  color: #000 !important;
+html[data-theme="light"] body { background: #f5f5f5 !important; color: #000 !important; }
+html[data-theme="dark"] body  { background: #000 !important; color: #fff !important; }
+
+body.theme-ready { transition: background 0.25s ease, color 0.25s ease; }
+
+/* ─── Responsive utilities ─── */
+.hide-mobile  { display: block; }
+.show-mobile  { display: none; }
+
+@media (max-width: 768px) {
+  .hide-mobile  { display: none !important; }
+  .show-mobile  { display: block !important; }
+
+  /* Navbar */
+  .desktop-nav  { display: none !important; }
+  .mobile-menu-btn { display: flex !important; }
+
+  /* Grids → single column */
+  .grid-auto    { grid-template-columns: 1fr !important; }
+  .grid-2       { grid-template-columns: 1fr !important; }
+  .grid-3       { grid-template-columns: 1fr !important; }
+  .grid-4       { grid-template-columns: 1fr 1fr !important; }
+
+  /* Padding */
+  .page-pad     { padding: 20px 16px !important; }
+  .section-pad  { padding: 16px !important; }
+
+  /* Tables → scroll */
+  .table-wrap   { overflow-x: auto; }
+  table         { min-width: 600px; }
+
+  /* Admin sidebar */
+  .admin-sidebar { width: 60px !important; }
+  .admin-sidebar span { display: none !important; }
+
+  /* Course player sidebar */
+  .course-sidebar { display: none !important; }
+  .course-sidebar.open { display: block !important; position: fixed; left: 0; top: 56px; bottom: 0; z-index: 100; width: 280px !important; box-shadow: 4px 0 20px rgba(0,0,0,0.3); }
+
+  /* Cards */
+  .card-grid    { grid-template-columns: 1fr 1fr !important; }
+  .card-grid-sm { grid-template-columns: 1fr !important; }
+
+  /* Flex → column */
+  .flex-col-mobile { flex-direction: column !important; }
+  .flex-wrap-mobile { flex-wrap: wrap !important; }
+
+  /* Font sizes */
+  h1 { font-size: 20px !important; }
+  h2 { font-size: 17px !important; }
+
+  /* Buttons full width on mobile */
+  .btn-full-mobile { width: 100% !important; }
+
+  /* Dashboard stats */
+  .stats-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* Live page */
+  .live-card { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
+  .live-card .actions { width: 100% !important; }
+  .live-card .actions a,
+  .live-card .actions button { width: 100% !important; justify-content: center !important; }
 }
 
-html[data-theme="dark"] body,
-body.theme-dark,
-body {
-  background: #000 !important;
-  color: #fff !important;
-}
-
-/* Navbar light mode */
-html[data-theme="light"] nav,
-body.theme-light nav {
-  background: rgba(255,255,255,0.97) !important;
-  border-bottom: 1px solid #e5e5e5 !important;
-}
-
-/* Smooth transition after mount */
-body.theme-ready {
-  transition: background 0.25s ease, color 0.25s ease;
+@media (max-width: 480px) {
+  .card-grid    { grid-template-columns: 1fr !important; }
+  .grid-4       { grid-template-columns: 1fr !important; }
+  .stats-grid   { grid-template-columns: 1fr !important; }
+  .page-pad     { padding: 16px 12px !important; }
 }
