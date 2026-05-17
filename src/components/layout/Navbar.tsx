@@ -1,302 +1,220 @@
 "use client";
-import React from "react";
-
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useCurrency } from "@/hooks/useCurrency";
-
-const LANGUAGES = [
-  { code: "mn", label: "Монгол", flag: "🇲🇳" },
-  { code: "en", label: "English", flag: "🇺🇸" },
-  { code: "ja", label: "日本語", flag: "🇯🇵" },
-  { code: "ko", label: "한국어", flag: "🇰🇷" },
-  { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "de", label: "Deutsch", flag: "🇩🇪" },
-  { code: "zh", label: "中文", flag: "🇨🇳" },
-];
-
-const T: Record<string, Record<string, string>> = {
-  mn: { courses: "Сургалтууд", dashboard: "Хяналтын самбар", profile: "Профайл", login: "Нэвтрэх", register: "Бүртгүүлэх", logout: "Гарах" },
-  en: { courses: "Courses", dashboard: "Dashboard", profile: "Profile", login: "Sign In", register: "Sign Up", logout: "Sign Out" },
-  ja: { courses: "コース", dashboard: "ダッシュボード", profile: "プロフィール", login: "ログイン", register: "登録", logout: "ログアウト" },
-  ko: { courses: "강의", dashboard: "대시보드", profile: "프로필", login: "로그인", register: "회원가입", logout: "로그아웃" },
-  fr: { courses: "Cours", dashboard: "Tableau de bord", profile: "Profil", login: "Connexion", register: "S'inscrire", logout: "Déconnexion" },
-  de: { courses: "Kurse", dashboard: "Dashboard", profile: "Profil", login: "Anmelden", register: "Registrieren", logout: "Abmelden" },
-  zh: { courses: "课程", dashboard: "仪表盘", profile: "个人资料", login: "登录", register: "注册", logout: "退出" },
-};
+import { useState, useEffect, useRef } from "react";
+import { useLang } from "@/hooks/useLang";
+import { useTheme } from "@/hooks/useTheme";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function Navbar() {
   const { data: session } = useSession();
-  const [open, setOpen] = useState(false);
-  const [coursesOpen, setCoursesOpen] = useState(false);
-  const coursesTimer = React.useRef<ReturnType<typeof setTimeout>|null>(null);
-  const { currency, country } = useCurrency();
-  const [lang, setLang] = useState("mn");
-  const [isDark, setIsDark] = useState(true);
-  const dropRef = useRef<HTMLDivElement>(null);
+  const { lang, setLang } = useLang();
+  const { isDark, toggle, mounted } = useTheme();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [menuOpen, setMenu] = useState(false);
+  const [coursesOpen, setCourses] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [userOpen, setUserOpen] = useState(false);
+  const coursesRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
+  const userRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const savedLang = localStorage.getItem("aura_lang") || "mn";
-    setLang(savedLang);
-    const savedTheme = localStorage.getItem("aura_theme") || "dark";
-    setIsDark(savedTheme === "dark");
-    document.cookie = `aura_theme=${savedTheme};path=/;max-age=31536000`;
-    document.body.classList.remove("theme-dark", "theme-light");
-    document.body.classList.add(`theme-${savedTheme}`);
-  }, []);
+  const t=(mn:string,en:string,ja="",ko="",fr="",de="",zh="")=>
+    lang==="mn"?mn:lang==="ja"?(ja||en):lang==="ko"?(ko||en):lang==="fr"?(fr||en):lang==="de"?(de||en):lang==="zh"?(zh||en):en;
 
-  useEffect(() => {
+  const LANGS = [
+    {code:"mn",label:"🇲🇳 Монгол"},
+    {code:"en",label:"🇺🇸 English"},
+    {code:"ja",label:"🇯🇵 日本語"},
+    {code:"ko",label:"🇰🇷 한국어"},
+    {code:"fr",label:"🇫🇷 Français"},
+    {code:"de",label:"🇩🇪 Deutsch"},
+    {code:"zh",label:"🇨🇳 中文"},
+  ];
+
+  useEffect(()=>{
     function handleClick(e: MouseEvent) {
-      if (dropRef.current && !dropRef.current.contains(e.target as Node)) setOpen(false);
+      if(coursesRef.current && !coursesRef.current.contains(e.target as Node)) setCourses(false);
+      if(langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+      if(userRef.current && !userRef.current.contains(e.target as Node)) setUserOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
+    return ()=>document.removeEventListener("mousedown", handleClick);
+  },[]);
 
-  function toggleTheme() {
-    const next = isDark ? "light" : "dark";
-    setIsDark(!isDark);
-    localStorage.setItem("aura_theme", next);
-    document.cookie = `aura_theme=${next};path=/;max-age=31536000`;
-    document.body.classList.remove("theme-dark", "theme-light");
-    document.body.classList.add(`theme-${next}`);
-    // Бүх хуудасны useTheme hook-д дуулгана
-    window.dispatchEvent(new CustomEvent("themeChange", { detail: next }));
-  }
+  useEffect(()=>{ setMenu(false); setCourses(false); },[pathname]);
 
-  function changeLang(code: string) {
-    localStorage.setItem("aura_lang", code);
-    document.cookie = `aura_lang=${code};path=/;max-age=31536000`;
-    setLang(code);
-    setOpen(false);
-    window.dispatchEvent(new CustomEvent("langChange", { detail: code }));
-  }
+  if(!mounted) return <nav style={{height:"56px",background:isDark?"#000":"#fff",borderBottom:"1px solid #1e1e1e"}}/>;
 
-  const current = LANGUAGES.find(l => l.code === lang) || LANGUAGES[0];
-  const t = T[lang] || T["mn"];
+  const BG     = isDark?"rgba(0,0,0,0.95)":"rgba(255,255,255,0.97)";
+  const BORDER = isDark?"#1e1e1e":"#e5e5e5";
+  const TEXT   = isDark?"#fff":"#000";
+  const MUTED  = isDark?"#666":"#999";
+  const HOVER  = isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)";
+  const DROP   = isDark?"#111":"#fff";
 
-  const linkStyle = {
-    color: isDark ? "#888" : "#111", fontSize: "14px", fontWeight: 500,
-    textDecoration: "none", transition: "color 0.15s",
-  } as const;
+  const isAdmin = (session?.user as any)?.role === "admin";
+
+  const COURSES_MENU = [
+    {href:"/courses",          icon:"fa-graduation-cap", label:t("Бүх сургалт","All Courses","すべてのコース","전체 강의","Tous les cours","Alle Kurse","所有课程")},
+    {href:"/courses/language", icon:"fa-language",       label:t("Хэл сургалт","Language","語学","언어","Langues","Sprachen","语言")},
+    {href:"/courses/development",icon:"fa-code",         label:t("Хөгжүүлэлт","Development","開発","개발","Développement","Entwicklung","开发")},
+    {href:"/courses/live",     icon:"fa-circle-dot",     label:t("Шууд хичээл","Live Classes","ライブ","라이브","En direct","Live","直播"), live:true},
+    {href:"/courses/certificate",icon:"fa-certificate",  label:t("Гэрчилгээ","Certificate","証明書","수료증","Certificat","Zertifikat","证书")},
+  ];
+
+  const NAV_LINKS = [
+    {href:"/dashboard", label:t("Хяналтын самбар","Dashboard","ダッシュボード","대시보드","Tableau de bord","Dashboard","仪表盘")},
+    {href:"/payment",   label:t("Захиалга","Subscribe","登録","구독","S'abonner","Abonnieren","订阅")},
+    {href:"/profile",   label:t("Профайл","Profile","プロフィール","프로필","Profil","Profil","个人资料")},
+  ];
+
+  const linkStyle = (active?: boolean):React.CSSProperties => ({
+    color: active ? TEXT : MUTED,
+    textDecoration:"none", fontSize:"13px", fontWeight: active ? 600 : 400,
+    padding:"6px 10px", borderRadius:"7px",
+    background: active ? HOVER : "transparent",
+    display:"flex", alignItems:"center", gap:"5px",
+    whiteSpace:"nowrap",
+  });
 
   return (
-    <nav style={{
-      background: isDark ? "rgba(0,0,0,0.95)" : "rgba(255,255,255,0.97)",
-      borderBottom: isDark ? "1px solid #1a1a1a" : "1px solid #e5e5e5",
-      backdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 50,
-    }}>
-      <div style={{
-        maxWidth: "1100px", margin: "0 auto", padding: "0 24px",
-        display: "flex", alignItems: "center", justifyContent: "space-between", height: "56px",
-      }}>
+    <>
+      <nav style={{ position:"sticky", top:0, zIndex:200, height:"56px", background:BG, borderBottom:`1px solid ${BORDER}`, backdropFilter:"blur(12px)", display:"flex", alignItems:"center", padding:"0 16px", gap:"8px", fontFamily:"'Inter',-apple-system,sans-serif" }}>
+
         {/* Logo */}
-        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
-          <svg width="28" height="28" viewBox="0 0 44 44" fill="none">
-            <circle cx="22" cy="22" r="21" stroke={isDark ? "#555" : "#999"} strokeWidth="0.8"/>
-            <circle cx="22" cy="22" r="16" stroke={isDark ? "#777" : "#bbb"} strokeWidth="1"/>
-            <circle cx="22" cy="22" r="11" fill={isDark ? "#fff" : "#000"}/>
-            <path d="M22 13 L28 30 L25.5 30 L24.3 26.5 L19.7 26.5 L18.5 30 L16 30 Z M20.5 24 L23.5 24 L22 15 Z" fill={isDark ? "#000" : "#fff"}/>
+        <Link href="/" style={{ display:"flex", alignItems:"center", gap:"7px", textDecoration:"none", marginRight:"8px", flexShrink:0 }}>
+          <svg width="22" height="22" viewBox="0 0 44 44" fill="none">
+            <circle cx="22" cy="22" r="21" stroke={isDark?"rgba(255,255,255,0.2)":"rgba(0,0,0,0.15)"} strokeWidth="0.8"/>
+            <circle cx="22" cy="22" r="11" fill={TEXT}/>
+            <path d="M22 13L28 30L25.5 30L24.3 26.5L19.7 26.5L18.5 30L16 30ZM20.5 24L23.5 24L22 15Z" fill={isDark?"#000":"#fff"}/>
           </svg>
-          <span style={{ fontSize: "18px", fontWeight: 800, color: isDark ? "#fff" : "#000", letterSpacing: "-0.5px" }}>
-            Aura<span style={{ color: isDark ? "#666" : "#999" }}>Learn</span>
-          </span>
+          <span style={{ fontSize:"14px", fontWeight:800, color:TEXT, letterSpacing:"0.02em" }}>AuraLearn</span>
         </Link>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        {/* Desktop nav */}
+        <div style={{ display:"flex", alignItems:"center", gap:"2px", flex:1 }} className="desktop-nav">
+
           {/* Courses dropdown */}
-          <div style={{ position: "relative" }}
-            onMouseEnter={() => {
-              if (coursesTimer.current) clearTimeout(coursesTimer.current);
-              setCoursesOpen(true);
-            }}
-            onMouseLeave={() => {
-              coursesTimer.current = setTimeout(() => setCoursesOpen(false), 150);
-            }}>
-            <Link href="/courses" style={{ ...linkStyle, display: "flex", alignItems: "center", gap: "4px" }}
-              onMouseEnter={e => (e.currentTarget.style.color = isDark ? "#fff" : "#000")}
-              onMouseLeave={e => (e.currentTarget.style.color = isDark ? "#888" : "#111")}>
-              {t.courses}
-              <svg width="9" height="9" viewBox="0 0 10 10" fill="none"
-                style={{ transform: coursesOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.15s", marginTop: "1px" }}>
-                <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-            </Link>
-            {coursesOpen && (
-              <div
-                onMouseEnter={() => { if (coursesTimer.current) clearTimeout(coursesTimer.current); }}
-                onMouseLeave={() => { coursesTimer.current = setTimeout(() => setCoursesOpen(false), 150); }}
-                style={{
-                position: "absolute", top: "calc(100% + 2px)", left: 0,
-                paddingTop: "6px",
-                background: "transparent",
-                zIndex: 100,
-                minWidth: "180px",
-              }}>
-              <div style={{
-                background: isDark ? "#111" : "#fff",
-                border: `1px solid ${isDark ? "#2a2a2a" : "#e0e0e0"}`,
-                borderRadius: "10px", padding: "6px",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-              }}>
-                {[
-                  { href: "/courses", icon: "fa-th-large", label: lang === "mn" ? "Бүгд" : lang === "ja" ? "すべて" : lang === "ko" ? "전체" : lang === "fr" ? "Tous" : lang === "de" ? "Alle" : lang === "zh" ? "全部" : "All Courses" },
-                  { href: "/courses/language", icon: "fa-language", label: lang === "mn" ? "Хэл" : lang === "ja" ? "言語" : lang === "ko" ? "언어" : lang === "fr" ? "Langues" : lang === "de" ? "Sprachen" : lang === "zh" ? "语言" : "Language" },
-                  { href: "/courses/development", icon: "fa-code", label: lang === "mn" ? "Хөгжүүлэлт" : lang === "ja" ? "開発" : lang === "ko" ? "개발" : lang === "fr" ? "Développement" : lang === "de" ? "Entwicklung" : lang === "zh" ? "开발" : "Development" },
-                  { href: "/courses/live", icon: "fa-circle", label: lang === "mn" ? "Шууд" : lang === "ja" ? "ライブ" : lang === "ko" ? "라이브" : lang === "fr" ? "En direct" : lang === "de" ? "Live" : lang === "zh" ? "直播" : "Live", live: true },
-                  { href: "/courses/certificate", icon: "fa-certificate", label: lang === "mn" ? "Гэрчилгээ" : lang === "ja" ? "修了証" : lang === "ko" ? "수료증" : lang === "fr" ? "Certificat" : lang === "de" ? "Zertifikat" : lang === "zh" ? "证书" : "Certificate" },
-                ].map(item => (
-                  <Link key={item.href} href={item.href} style={{
-                    display: "flex", alignItems: "center", gap: "10px",
-                    padding: "8px 12px", borderRadius: "7px", textDecoration: "none",
-                    color: isDark ? "#aaa" : "#444", fontSize: "13px", fontWeight: 500,
-                    transition: "all 0.1s",
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = isDark ? "#1a1a1a" : "#f5f5f5"; e.currentTarget.style.color = isDark ? "#fff" : "#000"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = isDark ? "#aaa" : "#444"; }}>
-                    <i className={`fa-solid ${item.icon}`} style={{ fontSize: "12px", width: "14px", color: (item as any).live ? "#ef4444" : "inherit" }} />
-                    <span>{item.label}</span>
-                    {(item as any).live && <span style={{ marginLeft: "auto", width: "6px", height: "6px", borderRadius: "50%", background: "#ef4444", animation: "pulse 1.5s infinite" }} />}
+          <div ref={coursesRef} style={{ position:"relative" }}>
+            <button onClick={()=>setCourses(!coursesOpen)} style={{ ...linkStyle(), background:"none", border:"none", cursor:"pointer", color:MUTED }}>
+              <i className="fa-solid fa-graduation-cap" style={{fontSize:"12px"}}/>
+              {t("Сургалт","Courses","コース","강의","Cours","Kurse","课程")}
+              <i className={`fa-solid fa-chevron-${coursesOpen?"up":"down"}`} style={{fontSize:"9px"}}/>
+            </button>
+            {coursesOpen&&(
+              <div style={{ position:"absolute", top:"calc(100% + 6px)", left:0, background:DROP, border:`1px solid ${BORDER}`, borderRadius:"10px", padding:"6px", minWidth:"200px", boxShadow:"0 8px 30px rgba(0,0,0,0.15)", zIndex:300 }}>
+                {COURSES_MENU.map(item=>(
+                  <Link key={item.href} href={item.href} style={{ display:"flex", alignItems:"center", gap:"10px", padding:"8px 12px", borderRadius:"7px", textDecoration:"none", color:TEXT, fontSize:"13px" }}
+                    onMouseEnter={e=>e.currentTarget.style.background=HOVER}
+                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                    <i className={`fa-solid ${item.icon}`} style={{ width:"14px", fontSize:"12px", color:(item as any).live?"#ef4444":MUTED }}/>
+                    {item.label}
+                    {(item as any).live&&<span style={{ width:"6px", height:"6px", borderRadius:"50%", background:"#ef4444", display:"inline-block", animation:"pulse 1.5s infinite", marginLeft:"auto" }}/>}
                   </Link>
                 ))}
               </div>
-              </div>
             )}
           </div>
-          <Link href="/payment" style={linkStyle}
-            onMouseEnter={e => (e.currentTarget.style.color = isDark ? "#fff" : "#000")}
-            onMouseLeave={e => (e.currentTarget.style.color = isDark ? "#888" : "#111")}>
-            {lang === "mn" ? "Үнэ" : lang === "ja" ? "料金" : lang === "ko" ? "요금" : lang === "zh" ? "定价" : lang === "fr" ? "Tarifs" : lang === "de" ? "Preise" : "Pricing"}
-          </Link>
 
-          {/* Currency indicator */}
-          <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: isDark ? "#555" : "#999", padding: "4px 8px", background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)", borderRadius: "6px", border: `1px solid ${isDark ? "#2a2a2a" : "#e0e0e0"}` }}>
-            <span>{currency.symbol}</span>
-            <span style={{ fontWeight: 600 }}>{currency.code}</span>
-          </div>
+          {session && <Link href="/dashboard" style={linkStyle(pathname==="/dashboard")}>{t("Dashboard","Dashboard")}</Link>}
+          {isAdmin && <Link href="/admin" style={linkStyle(pathname.startsWith("/admin"))}><i className="fa-solid fa-shield-halved" style={{fontSize:"11px",color:"#f59e0b"}}/> Admin</Link>}
+        </div>
 
-          {/* Dark/Light toggle */}
-          <button onClick={toggleTheme} style={{
-            background: "transparent", border: "1px solid #2a2a2a",
-            borderRadius: "6px", width: "34px", height: "28px",
-            cursor: "pointer", display: "flex", alignItems: "center",
-            justifyContent: "center", color: isDark ? "#666" : "#444", fontSize: "14px",
-            transition: "all 0.15s",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = isDark ? "#555" : "#999"; e.currentTarget.style.color = isDark ? "#fff" : "#000"; }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = isDark ? "#2a2a2a" : "#e0e0e0"; e.currentTarget.style.color = isDark ? "#666" : "#444"; }}>
-            <i className={isDark?"fa-solid fa-sun":"fa-solid fa-moon"} style={{fontSize:"13px"}} />
+        {/* Right side */}
+        <div style={{ display:"flex", alignItems:"center", gap:"6px", flexShrink:0 }}>
+
+          {/* Theme */}
+          <button onClick={toggle} style={{ background:"none", border:`1px solid ${BORDER}`, color:MUTED, width:"32px", height:"32px", borderRadius:"8px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"13px" }}>
+            <i className={`fa-solid ${isDark?"fa-sun":"fa-moon"}`}/>
           </button>
 
-          {/* Language switcher */}
-          <div ref={dropRef} style={{ position: "relative" }}>
-            <button onClick={() => setOpen(o => !o)} style={{
-              display: "flex", alignItems: "center", gap: "6px",
-              background: "transparent", border: "1px solid #2a2a2a",
-              borderRadius: "6px", padding: "4px 10px",
-              color: isDark ? "#666" : "#444", fontSize: "13px", cursor: "pointer", transition: "all 0.15s",
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = isDark ? "#555" : "#999"; e.currentTarget.style.color = isDark ? "#fff" : "#000"; }}
-            onMouseLeave={e => { if (!open) { e.currentTarget.style.borderColor = isDark ? "#2a2a2a" : "#e0e0e0"; e.currentTarget.style.color = isDark ? "#666" : "#444"; } }}>
-              <span style={{ fontSize: "14px" }}>{current.flag}</span>
-              <span>{current.label}</span>
-              <svg width="9" height="9" viewBox="0 0 10 10" fill="none"
-                style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.15s" }}>
-                <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
+          {/* Language */}
+          <div ref={langRef} style={{ position:"relative" }}>
+            <button onClick={()=>setLangOpen(!langOpen)} style={{ background:"none", border:`1px solid ${BORDER}`, color:MUTED, height:"32px", padding:"0 8px", borderRadius:"8px", cursor:"pointer", fontSize:"12px", display:"flex", alignItems:"center", gap:"4px" }}>
+              {LANGS.find(l=>l.code===lang)?.label.split(" ")[0]}
+              <i className="fa-solid fa-chevron-down" style={{fontSize:"8px"}}/>
             </button>
-
-            {open && (
-              <div style={{
-                position: "absolute", top: "calc(100% + 8px)", right: 0,
-                background: isDark ? "#111" : "#fff",
-                border: isDark ? "1px solid #2a2a2a" : "1px solid #e0e0e0",
-                borderRadius: "8px", padding: "4px", minWidth: "160px",
-                zIndex: 100, boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-              }}>
-                {LANGUAGES.map(l => (
-                  <button key={l.code} onClick={() => changeLang(l.code)} style={{
-                    width: "100%", display: "flex", alignItems: "center", gap: "10px",
-                    padding: "7px 10px", borderRadius: "5px",
-                    background: lang === l.code ? (isDark ? "#1a1a1a" : "#f0f0f0") : "transparent",
-                    border: "none", color: lang === l.code ? (isDark ? "#fff" : "#000") : (isDark ? "#888" : "#555"),
-                    fontSize: "13px", fontWeight: lang === l.code ? 600 : 400,
-                    cursor: "pointer", textAlign: "left", transition: "all 0.1s",
-                  }}
-                  onMouseEnter={e => { if (lang !== l.code) e.currentTarget.style.background = isDark ? "#161616" : "#f0f0f0"; }}
-                  onMouseLeave={e => { if (lang !== l.code) e.currentTarget.style.background = "transparent"; }}>
-                    <span style={{ fontSize: "15px" }}>{l.flag}</span>
-                    <span style={{ flex: 1 }}>{l.label}</span>
-                    {lang === l.code && (
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M2 6L5 9L10 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
-                    )}
+            {langOpen&&(
+              <div style={{ position:"absolute", top:"calc(100% + 6px)", right:0, background:DROP, border:`1px solid ${BORDER}`, borderRadius:"10px", padding:"6px", minWidth:"140px", boxShadow:"0 8px 30px rgba(0,0,0,0.15)", zIndex:300 }}>
+                {LANGS.map(l=>(
+                  <button key={l.code} onClick={()=>{setLang(l.code as any);setLangOpen(false);}} style={{ width:"100%", background:lang===l.code?HOVER:"transparent", border:"none", color:TEXT, padding:"7px 12px", borderRadius:"6px", cursor:"pointer", fontSize:"12px", textAlign:"left", display:"flex", alignItems:"center", gap:"6px" }}>
+                    {l.label}
                   </button>
                 ))}
               </div>
             )}
           </div>
 
+          {/* User */}
           {session ? (
-            <>
-              <Link href="/dashboard" style={linkStyle}
-                onMouseEnter={e => (e.currentTarget.style.color = isDark ? "#fff" : "#000")}
-                onMouseLeave={e => (e.currentTarget.style.color = isDark ? "#888" : "#111")}>
-                {t.dashboard}
-              </Link>
-              {(session?.user as any)?.role === "admin" && (
-                <Link href="/admin" style={{
-                  ...linkStyle,
-                  background: "linear-gradient(135deg,#7c3aed,#06b6d4)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  fontWeight: 700,
-                }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = "0.8"; }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}>
-                  <i className="fa-solid fa-shield-halved" style={{ marginRight: "4px", background: "linear-gradient(135deg,#7c3aed,#06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }} />
-                  Admin
-                </Link>
-              )}
-              <Link href="/profile" style={linkStyle}
-                onMouseEnter={e => (e.currentTarget.style.color = isDark ? "#fff" : "#000")}
-                onMouseLeave={e => (e.currentTarget.style.color = isDark ? "#888" : "#111")}>
-                {t.profile}
-              </Link>
-              <button onClick={() => signOut({ callbackUrl: "/" })} style={{
-                background: "transparent", border: `1px solid ${isDark ? "#2a2a2a" : "#e0e0e0"}`,
-                color: isDark ? "#666" : "#444", padding: "5px 14px", borderRadius: "6px",
-                fontSize: "13px", cursor: "pointer", transition: "all 0.15s",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = isDark ? "#555" : "#999"; e.currentTarget.style.color = isDark ? "#fff" : "#000"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = isDark ? "#2a2a2a" : "#e0e0e0"; e.currentTarget.style.color = isDark ? "#666" : "#444"; }}>
-                {t.logout}
+            <div ref={userRef} style={{ position:"relative" }}>
+              <button onClick={()=>setUserOpen(!userOpen)} style={{ background:"none", border:`1px solid ${BORDER}`, borderRadius:"8px", cursor:"pointer", padding:"3px", display:"flex", alignItems:"center", gap:"6px", height:"32px" }}>
+                {session.user?.image&&session.user.image.length<500 ? (
+                  <img src={session.user.image} style={{ width:"24px", height:"24px", borderRadius:"50%", objectFit:"cover" }} alt=""/>
+                ) : (
+                  <div style={{ width:"24px", height:"24px", borderRadius:"50%", background:isDark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.08)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"11px", fontWeight:700, color:TEXT }}>
+                    {(session.user?.name||"?")[0].toUpperCase()}
+                  </div>
+                )}
+                <i className="fa-solid fa-chevron-down" style={{ fontSize:"8px", color:MUTED, marginRight:"4px" }}/>
               </button>
-            </>
+              {userOpen&&(
+                <div style={{ position:"absolute", top:"calc(100% + 6px)", right:0, background:DROP, border:`1px solid ${BORDER}`, borderRadius:"10px", padding:"6px", minWidth:"180px", boxShadow:"0 8px 30px rgba(0,0,0,0.15)", zIndex:300 }}>
+                  <div style={{ padding:"8px 12px", borderBottom:`1px solid ${BORDER}`, marginBottom:"4px" }}>
+                    <div style={{ color:TEXT, fontSize:"13px", fontWeight:600 }}>{session.user?.name}</div>
+                    <div style={{ color:MUTED, fontSize:"11px" }}>{session.user?.email}</div>
+                  </div>
+                  {NAV_LINKS.map(l=>(
+                    <Link key={l.href} href={l.href} style={{ display:"block", padding:"8px 12px", borderRadius:"7px", textDecoration:"none", color:TEXT, fontSize:"13px" }}
+                      onMouseEnter={e=>e.currentTarget.style.background=HOVER}
+                      onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                      {l.label}
+                    </Link>
+                  ))}
+                  <button onClick={()=>signOut({callbackUrl:"/"})} style={{ width:"100%", background:"none", border:"none", color:"#f87171", padding:"8px 12px", borderRadius:"7px", cursor:"pointer", fontSize:"13px", textAlign:"left", marginTop:"4px", borderTop:`1px solid ${BORDER}` }}>
+                    <i className="fa-solid fa-arrow-right-from-bracket" style={{marginRight:"6px"}}/>
+                    {t("Гарах","Sign out","サインアウト","로그아웃","Se déconnecter","Abmelden","退出")}
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
-            <>
-              <Link href="/auth/login" style={linkStyle}
-                onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
-                onMouseLeave={e => (e.currentTarget.style.color = "#666")}>
-                {t.login}
-              </Link>
-              <Link href="/auth/register" style={{
-                background: isDark ? "#fff" : "#000",
-                color: isDark ? "#000" : "#fff",
-                padding: "6px 16px", borderRadius: "6px", fontSize: "13px",
-                fontWeight: 600, textDecoration: "none", transition: "background 0.15s",
-              }}
-              onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
-              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
-                {t.register}
-              </Link>
-            </>
+            <Link href="/auth/login" style={{ background:isDark?"#fff":"#000", color:isDark?"#000":"#fff", padding:"6px 14px", borderRadius:"8px", textDecoration:"none", fontSize:"13px", fontWeight:600 }}>
+              {t("Нэвтрэх","Sign in","ログイン","로그인","Se connecter","Anmelden","登录")}
+            </Link>
           )}
+
+          {/* Mobile menu button */}
+          <button onClick={()=>setMenu(!menuOpen)} className="mobile-menu-btn" style={{ background:"none", border:`1px solid ${BORDER}`, color:MUTED, width:"32px", height:"32px", borderRadius:"8px", cursor:"pointer", display:"none", alignItems:"center", justifyContent:"center", fontSize:"13px" }}>
+            <i className={`fa-solid ${menuOpen?"fa-xmark":"fa-bars"}`}/>
+          </button>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Mobile menu */}
+      {menuOpen&&(
+        <div style={{ position:"fixed", top:"56px", left:0, right:0, bottom:0, background:BG, zIndex:199, overflowY:"auto", padding:"16px" }}>
+          {COURSES_MENU.map(item=>(
+            <Link key={item.href} href={item.href} style={{ display:"flex", alignItems:"center", gap:"12px", padding:"14px 16px", borderRadius:"10px", textDecoration:"none", color:TEXT, fontSize:"14px", marginBottom:"4px", background:HOVER }}>
+              <i className={`fa-solid ${item.icon}`} style={{ width:"16px", color:(item as any).live?"#ef4444":MUTED }}/>
+              {item.label}
+            </Link>
+          ))}
+          {session&&<Link href="/dashboard" style={{ display:"flex", alignItems:"center", gap:"12px", padding:"14px 16px", borderRadius:"10px", textDecoration:"none", color:TEXT, fontSize:"14px", marginBottom:"4px", background:HOVER }}>{t("Dashboard","Dashboard")}</Link>}
+          {isAdmin&&<Link href="/admin" style={{ display:"flex", alignItems:"center", gap:"12px", padding:"14px 16px", borderRadius:"10px", textDecoration:"none", color:"#f59e0b", fontSize:"14px", marginBottom:"4px", background:HOVER }}><i className="fa-solid fa-shield-halved"/>Admin</Link>}
+          {!session&&<Link href="/auth/login" style={{ display:"block", background:isDark?"#fff":"#000", color:isDark?"#000":"#fff", padding:"14px 16px", borderRadius:"10px", textDecoration:"none", fontSize:"14px", fontWeight:600, textAlign:"center", marginTop:"8px" }}>{t("Нэвтрэх","Sign in")}</Link>}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        @media(max-width:768px){
+          .desktop-nav{display:none!important;}
+          .mobile-menu-btn{display:flex!important;}
+        }
+      `}</style>
+    </>
   );
 }

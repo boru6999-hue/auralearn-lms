@@ -114,7 +114,9 @@ export default function LiveCoursesPage() {
                 <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"12px",padding:"24px",textAlign:"center"}}>
                   <i className="fa-solid fa-spinner fa-spin" style={{fontSize:"28px",color:"#ef4444"}}/>
                   <div style={{color:"#aaa",fontSize:"14px",fontWeight:600}}>
-                    {t("Admin дэлгэц хуваалцахыг хүлээж байна...","Waiting for admin to share screen...","管理者の画面共有を待っています...","관리자 화면 공유 대기 중...","En attente du partage d'écran...","Warte auf Bildschirmfreigabe...","等待管理员共享屏幕...")}
+                    {t("Шууд дамжуулалт хүлээж байна...","Live stream connecting...","ライブ配信を待っています...","라이브 스트림 연결 중...","Connexion au stream...","Stream wird verbunden...","直播连接中...")}</div>
+                  <div style={{color:"#555",fontSize:"12px",marginTop:"6px",textAlign:"center",lineHeight:1.6}}>
+                    {t("Admin болон та нэг browser-д өөр tab нээгээд admin/live хуудсанд Studio эхлүүлнэ үү","Admin must open Studio in another tab of the same browser","管理者は同じブラウザの別タブでStudioを開いてください","관리자가 같은 브라우저의 다른 탭에서 Studio를 열어야 합니다","L'admin doit ouvrir Studio dans un autre onglet du même navigateur","Admin muss Studio in einem anderen Tab desselben Browsers öffnen","管理员需要在同一浏览器的另一个标签页中打开Studio")}
                   </div>
                 </div>
               )}
