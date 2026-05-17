@@ -9,7 +9,7 @@ import { useRouter, usePathname } from "next/navigation";
 export default function Navbar() {
   const { data: session } = useSession();
   const { lang } = useLang();
-  const { isDark, toggle, mounted } = useTheme();
+  const { isDark, mounted } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [menuOpen, setMenu] = useState(false);
@@ -126,7 +126,13 @@ export default function Navbar() {
         <div style={{ display:"flex", alignItems:"center", gap:"6px", flexShrink:0 }}>
 
           {/* Theme */}
-          <button onClick={toggle} style={{ background:"none", border:`1px solid ${BORDER}`, color:MUTED, width:"32px", height:"32px", borderRadius:"8px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"13px" }}>
+          <button onClick={()=>{
+            const newTheme = isDark ? "light" : "dark";
+            localStorage.setItem("aura_theme", newTheme);
+            document.cookie = `aura_theme=${newTheme};path=/;max-age=31536000`;
+            document.documentElement.setAttribute("data-theme", newTheme);
+            window.dispatchEvent(new CustomEvent("themeChange", { detail: newTheme }));
+          }} style={{ background:"none", border:`1px solid ${BORDER}`, color:MUTED, width:"32px", height:"32px", borderRadius:"8px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"13px" }}>
             <i className={`fa-solid ${isDark?"fa-sun":"fa-moon"}`}/>
           </button>
 
