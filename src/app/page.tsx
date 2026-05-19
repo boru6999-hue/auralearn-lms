@@ -143,9 +143,13 @@ export default function HomePage() {
         <div style={{borderTop:`1px solid ${RULE}`,display:"grid",gridTemplateColumns:"repeat(3,1fr)",paddingBottom:"clamp(32px,5vw,48px)"}}
           className="features-grid">
           {FEATURES.map((f,i)=>(
-            <div key={i} style={{padding:`clamp(20px,3vw,28px) ${i===0?"clamp(20px,3vw,28px) clamp(20px,3vw,28px) 0":i===1?"clamp(20px,3vw,28px)":"clamp(20px,3vw,28px) 0 clamp(20px,3vw,28px) clamp(20px,3vw,28px)"}`,borderRight:i<2?`1px solid ${RULE}`:"none"}}>
-              <i className={`fa-solid ${f.icon}`} style={{fontSize:"16px",color:MUTED,marginBottom:"12px",display:"block"}}/>
-              <div style={{fontSize:"13px",fontWeight:500,color:TEXT,marginBottom:"6px",letterSpacing:"-0.2px"}}>{f.title}</div>
+            <div key={i} style={{
+              padding:"28px 24px",
+              borderRight:i<2?`1px solid ${RULE}`:"none",
+              display:"flex",flexDirection:"column",gap:"10px",
+            }}>
+              <i className={`fa-solid ${f.icon}`} style={{fontSize:"16px",color:MUTED}}/>
+              <div style={{fontSize:"13px",fontWeight:500,color:TEXT,letterSpacing:"-0.2px"}}>{f.title}</div>
               <div style={{fontSize:"12px",color:MUTED,lineHeight:1.7,fontWeight:300}}>{f.desc}</div>
             </div>
           ))}
@@ -171,7 +175,7 @@ export default function HomePage() {
           .hero-grid>div:last-child{padding-left:0!important;padding-top:24px!important;}
           .features-grid{grid-template-columns:1fr!important;}
           .features-grid>div{border-right:none!important;border-bottom:1px solid ${RULE};padding:20px 0!important;}
-          .features-grid>div:last-child{border-bottom:none!important;}
+          .features-grid>div:last-child{border-bottom:none!important;padding-bottom:0!important;}
         }
       `}</style>
     </div>
