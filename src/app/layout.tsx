@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import SessionProvider from "@/components/layout/SessionProvider";
 import NavbarWrapper from "@/components/layout/NavbarWrapper";
-import AIAssistant from "@/components/ai/AIAssistant";
 
 export const metadata: Metadata = {
   title: "AuraLearn — Level Up Your Skills",
@@ -34,7 +33,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SessionProvider>
           <NavbarWrapper />
           <main>{children}</main>
-          <AIAssistant />
         </SessionProvider>
       </body>
     </html>
