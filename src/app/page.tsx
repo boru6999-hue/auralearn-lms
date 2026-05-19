@@ -88,8 +88,7 @@ export default function HomePage() {
       ) : (
       <div style={{maxWidth:"1080px",margin:"0 auto",padding:"0 clamp(24px,5vw,48px)"}}>
         {/* HERO */}
-        <div className="home-hero-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0,padding:"clamp(40px,8vw,56px) 0 40px",borderBottom:"1px solid",borderColor:"inherit"}}
-          style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0,padding:"clamp(40px,8vw,56px) 0 40px",borderBottom:`1px solid ${isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
+        <div className="home-hero-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:0,padding:"clamp(40px,8vw,56px) 0 40px",borderBottom:`1px solid ${isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
           <div className="home-hero-left" style={{paddingRight:"clamp(24px,4vw,48px)",borderRight:`1px solid ${isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)"}`}}>
             <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"20px"}}>
               <span style={{fontSize:"10px",letterSpacing:"0.16em",textTransform:"uppercase",color:isDark?"rgba(255,255,255,0.35)":"rgba(0,0,0,0.35)"}}>
