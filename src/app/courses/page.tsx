@@ -4,136 +4,142 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLang } from "@/hooks/useLang";
 import Link from "next/link";
 
-const CATS = [
-  { id:"all",         icon:"fa-th-large",  mn:"Бүгд",       en:"All"         },
-  { id:"language",    icon:"fa-language",   mn:"Хэл",        en:"Language"    },
-  { id:"development", icon:"fa-code",       mn:"Хөгжүүлэлт", en:"Development" },
-  { id:"design",      icon:"fa-pen-nib",    mn:"Дизайн",     en:"Design"      },
-  { id:"business",    icon:"fa-briefcase",  mn:"Бизнес",     en:"Business"    },
-];
-
-const LEVEL_LABEL: any = {
-  beginner:     { mn:"Анхан",  en:"Beginner"     },
-  intermediate: { mn:"Дунд",   en:"Intermediate" },
-  advanced:     { mn:"Ахисан", en:"Advanced"     },
+const CAT_LABEL: any = {
+  language:    { mn:"Хэл",        en:"Language",    ja:"言語",     ko:"언어",    fr:"Langues",       de:"Sprachen",  zh:"语言" },
+  development: { mn:"Хөгжүүлэлт", en:"Development", ja:"開発",     ko:"개발",    fr:"Développement", de:"Entwicklung",zh:"开发" },
+  design:      { mn:"Дизайн",     en:"Design",      ja:"デザイン", ko:"디자인",  fr:"Design",        de:"Design",    zh:"设计" },
+  business:    { mn:"Бизнес",     en:"Business",    ja:"ビジネス", ko:"비즈니스",fr:"Business",      de:"Business",  zh:"商业" },
 };
+const LEVEL_LABEL: any = {
+  beginner:     { mn:"Анхан",  en:"Beginner",     ja:"初級", ko:"초급" },
+  intermediate: { mn:"Дунд",   en:"Intermediate", ja:"中級", ko:"중급" },
+  advanced:     { mn:"Ахисан", en:"Advanced",     ja:"上級", ko:"고급" },
+};
+const CATS = ["all","language","development","design","business"];
 
 export default function CoursesPage() {
-  const { isDark, colors, mounted } = useTheme();
+  const { isDark, mounted } = useTheme();
   const { lang } = useLang();
-  const [courses, setCourses]  = useState<any[]>([]);
-  const [loading, setLoad]     = useState(true);
-  const [cat, setCat]          = useState("all");
-  const [search, setSearch]    = useState("");
-  const [hasAccess, setAccess] = useState(false);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoad]    = useState(true);
+  const [cat, setCat]         = useState("all");
+  const [search, setSearch]   = useState("");
+  const [hasAccess, setAccess]= useState(false);
 
-  const t=(mn:string,en:string,ja="",ko="",fr="",de="",zh="")=>
+  const t = (mn: string, en: string, ja="",ko="",fr="",de="",zh="") =>
     lang==="mn"?mn:lang==="ja"?(ja||en):lang==="ko"?(ko||en):lang==="fr"?(fr||en):lang==="de"?(de||en):lang==="zh"?(zh||en):en;
-  const cl=(key:string)=>{ const c=CATS.find(x=>x.id===key); return c?(c[lang as keyof typeof c]||c.en) as string:key; };
-  const lv=(key:string)=>{ const l=LEVEL_LABEL[key]; return l?(l[lang as keyof typeof l]||l.en) as string:key; };
+  const cl = (key: string) => { const c = CAT_LABEL[key]; return c?(c[lang]||c.en) as string:key; };
+  const lv = (key: string) => { const l = LEVEL_LABEL[key]; return l?(l[lang]||l.en) as string:key; };
 
-  useEffect(()=>{
-    fetch("/api/courses/public").then(r=>r.json()).then(d=>{ if(Array.isArray(d)) setCourses(d); }).catch(()=>{}).finally(()=>setLoad(false));
+  useEffect(() => {
+    fetch("/api/courses/public").then(r=>r.json()).then(d=>{if(Array.isArray(d))setCourses(d);}).catch(()=>{}).finally(()=>setLoad(false));
     fetch("/api/check-access").then(r=>r.json()).then(d=>setAccess(!!d.hasAccess)).catch(()=>{});
   },[]);
 
-  if(!mounted) return <div style={{minHeight:"100vh",background:"#000"}}/>;
+  if (!mounted) return <div style={{minHeight:"100vh",background:"#F2F0EB"}}/>;
+
+  const BG    = isDark?"#0a0a0f":"#F2F0EB";
+  const TEXT  = isDark?"#fff":"#1a1a1a";
+  const MUTED = isDark?"rgba(255,255,255,0.35)":"rgba(0,0,0,0.35)";
+  const RULE  = isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)";
+  const HOVER = isDark?"rgba(255,255,255,0.03)":"rgba(0,0,0,0.025)";
 
   const filtered = courses.filter(c=>(cat==="all"||c.category===cat)&&(c.title||"").toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div style={{minHeight:"100vh",background:colors.bg,fontFamily:"'Inter',-apple-system,sans-serif"}}>
-      <div style={{maxWidth:"1100px",margin:"0 auto",padding:"clamp(16px,4vw,32px) clamp(12px,4vw,24px)"}}>
+    <div style={{minHeight:"100vh",background:BG,fontFamily:"'Inter',-apple-system,sans-serif"}}>
+      <div style={{maxWidth:"1080px",margin:"0 auto",padding:"0 48px"}}>
 
         {/* Header */}
-        <div style={{marginBottom:"20px"}}>
-          <h1 style={{color:colors.text,fontSize:"clamp(20px,4vw,26px)",fontWeight:800,marginBottom:"6px"}}>
-            {t("Сургалтууд","Courses","コース","강의","Cours","Kurse","课程")}
-          </h1>
-          <p style={{color:colors.text3,fontSize:"13px"}}>{t("Мэргэжлийн багш нараас суралцаарай","Learn from professional instructors")}</p>
-        </div>
-
-        {/* Access banner */}
-        {hasAccess ? (
-          <div style={{background:isDark?"rgba(52,211,153,0.08)":"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:"12px",padding:"12px 16px",marginBottom:"16px",display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
-            <i className="fa-solid fa-circle-check" style={{color:"#34d399",fontSize:"16px",flexShrink:0}}/>
-            <span style={{color:colors.text,fontSize:"13px",fontWeight:600}}>
-              {t("Сарын эрхтэй — бүх сургалт үнэгүй!","Active subscription — all courses unlocked!")}
-            </span>
+        <div style={{padding:"48px 0 32px",borderBottom:`1px solid ${RULE}`}}>
+          <div style={{display:"flex",alignItems:"baseline",justifyContent:"space-between",marginBottom:"24px"}}>
+            <h1 style={{fontSize:"32px",fontWeight:300,color:TEXT,letterSpacing:"-1px"}}>
+              {t("Сургалтууд","Courses","コース","강의","Cours","Kurse","课程")}
+            </h1>
+            {hasAccess&&(
+              <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
+                <div style={{width:"6px",height:"6px",borderRadius:"50%",background:"#22c55e"}}/>
+                <span style={{fontSize:"11px",color:MUTED,letterSpacing:"0.04em"}}>
+                  {t("Сарын эрхтэй","Active subscription","サブスク有効","구독 중","Abonnement actif","Aktives Abo","订阅中")}
+                </span>
+              </div>
+            )}
           </div>
-        ) : (
-          <div style={{background:isDark?"rgba(255,255,255,0.04)":"#fff",border:`1px solid ${colors.border}`,borderRadius:"12px",padding:"14px 16px",marginBottom:"16px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:"12px"}}>
-            <div>
-              <div style={{color:colors.text,fontSize:"13px",fontWeight:600}}>{t("Бүх сургалтад хандах эрх авах","Get access to all courses")}</div>
-              <div style={{color:colors.text3,fontSize:"12px"}}>{t("Сарын захиалга авснаар бүх сургалтыг үзнэ","Monthly subscription unlocks all courses")}</div>
+
+          {/* Search + filter row */}
+          <div style={{display:"flex",alignItems:"center",gap:"24px",flexWrap:"wrap"}}>
+            <input value={search} onChange={e=>setSearch(e.target.value)}
+              placeholder={t("Хайх...","Search...","検索...","검색...","Rechercher...","Suchen...","搜索...")}
+              style={{height:"34px",background:"transparent",border:"none",borderBottom:`1px solid ${RULE}`,outline:"none",color:TEXT,fontSize:"13px",fontWeight:300,width:"220px",padding:"0 0 0 0",fontFamily:"inherit"}}/>
+            <div style={{display:"flex",gap:"0",borderBottom:`1px solid ${RULE}`}}>
+              {CATS.map(c=>(
+                <button key={c} onClick={()=>setCat(c)} style={{padding:"8px 16px",background:"none",border:"none",cursor:"pointer",fontSize:"11px",letterSpacing:"0.08em",textTransform:"uppercase",color:cat===c?TEXT:MUTED,borderBottom:cat===c?`1px solid ${TEXT}`:"1px solid transparent",marginBottom:"-1px",fontFamily:"inherit",transition:"all 0.15s"}}>
+                  {c==="all"?t("Бүгд","All","すべて","전체","Tous","Alle","全部"):cl(c)}
+                </button>
+              ))}
             </div>
-            <Link href="/payment" style={{background:isDark?"#fff":"#000",color:isDark?"#000":"#fff",padding:"8px 16px",borderRadius:"8px",textDecoration:"none",fontSize:"13px",fontWeight:700,whiteSpace:"nowrap" as const,flexShrink:0}}>
-              {t("Захиалах","Subscribe","登録","구독","S'abonner","Abonnieren","订阅")}
-            </Link>
           </div>
-        )}
-
-        {/* Search */}
-        <input value={search} onChange={e=>setSearch(e.target.value)}
-          placeholder={t("Сургалт хайх...","Search courses...")}
-          style={{width:"100%",maxWidth:"360px",height:"40px",background:isDark?"rgba(255,255,255,0.06)":"#fff",border:`1px solid ${colors.border}`,borderRadius:"10px",padding:"0 14px",color:colors.text,fontSize:"14px",outline:"none",marginBottom:"14px",boxSizing:"border-box" as const}}/>
-
-        {/* Category tabs - scrollable on mobile */}
-        <div style={{display:"flex",gap:"8px",marginBottom:"20px",overflowX:"auto",paddingBottom:"4px",WebkitOverflowScrolling:"touch" as any}}>
-          {CATS.map(c=>(
-            <button key={c.id} onClick={()=>setCat(c.id)} style={{padding:"6px 14px",borderRadius:"20px",border:"none",cursor:"pointer",background:cat===c.id?(isDark?"#fff":"#000"):(isDark?"rgba(255,255,255,0.06)":"#f0f0f0"),color:cat===c.id?(isDark?"#000":"#fff"):colors.text2,fontSize:"13px",fontWeight:600,display:"flex",alignItems:"center",gap:"6px",transition:"all 0.15s",flexShrink:0}}>
-              <i className={`fa-solid ${c.icon}`} style={{fontSize:"11px"}}/>
-              {cl(c.id)}
-            </button>
-          ))}
         </div>
 
-        {/* Grid */}
-        {loading ? (
-          <div style={{textAlign:"center",padding:"60px",color:colors.text3}}>
-            <i className="fa-solid fa-spinner fa-spin" style={{fontSize:"24px",display:"block",marginBottom:"10px"}}/>
-          </div>
-        ) : filtered.length===0 ? (
-          <div style={{textAlign:"center",padding:"60px",color:colors.text3}}>
-            <i className="fa-solid fa-graduation-cap" style={{fontSize:"32px",display:"block",marginBottom:"10px"}}/>
-            <div style={{fontWeight:600}}>{t("Сургалт олдсонгүй","No courses found")}</div>
-          </div>
-        ) : (
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(100%,220px),1fr))",gap:"12px"}}>
-            {filtered.map(c=>(
-              <div key={c._id} style={{background:isDark?"rgba(255,255,255,0.03)":"#fff",border:`1px solid ${colors.border}`,borderRadius:"14px",overflow:"hidden",transition:"all 0.2s"}}
-                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.borderColor=isDark?"rgba(255,255,255,0.15)":"#bbb";}}
-                onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.borderColor=colors.border;}}>
-                <div style={{height:"100px",background:isDark?"rgba(255,255,255,0.04)":"#f5f5f5",display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
-                  {c.thumbnail&&c.thumbnail.length<=4?<span style={{fontSize:"36px"}}>{c.thumbnail}</span>:c.thumbnail?.startsWith("http")?<img src={c.thumbnail} style={{width:"100%",height:"100%",objectFit:"cover"}} alt=""/>:<i className="fa-solid fa-graduation-cap" style={{fontSize:"28px",color:colors.text3}}/>}
-                  {c.featured&&<span style={{position:"absolute",top:"8px",right:"8px",background:isDark?"rgba(255,255,255,0.9)":"#000",color:isDark?"#000":"#fff",fontSize:"9px",fontWeight:700,padding:"2px 7px",borderRadius:"10px"}}>★</span>}
-                  <div style={{position:"absolute",bottom:"0",left:"0",right:"0",padding:"3px 8px",background:"rgba(0,0,0,0.5)",display:"flex",justifyContent:"space-between"}}>
-                    <span style={{color:"#fff",fontSize:"9px"}}>{cl(c.category||"development")}</span>
-                    <span style={{color:"#fff",fontSize:"9px"}}>{lv(c.level||"beginner")}</span>
-                  </div>
+        {/* Course list */}
+        <div style={{padding:"8px 0 48px"}}>
+          {loading?(
+            <div style={{padding:"60px 0",textAlign:"center",color:MUTED,fontSize:"13px",fontWeight:300}}>
+              {t("Ачааллаж байна...","Loading...","読み込み中...","로딩 중...","Chargement...","Laden...","加载中...")}
+            </div>
+          ):filtered.length===0?(
+            <div style={{padding:"60px 0",textAlign:"center"}}>
+              <div style={{fontSize:"13px",color:MUTED,fontWeight:300,marginBottom:"16px"}}>
+                {t("Сургалт олдсонгүй","No courses found","コースが見つかりません","강의를 찾을 수 없음","Aucun cours trouvé","Keine Kurse gefunden","未找到课程")}
+              </div>
+              <Link href="/admin/courses" style={{fontSize:"12px",color:MUTED,textDecoration:"none"}}>
+                {t("Admin-д сургалт нэмэх →","Add courses from admin →")}
+              </Link>
+            </div>
+          ):(
+            filtered.map((c,i)=>(
+              <div key={c._id||i} style={{display:"grid",gridTemplateColumns:"40px 1fr auto",gap:"16px",alignItems:"center",padding:"18px 0",borderBottom:`1px solid ${RULE}`,transition:"background 0.15s",cursor:"pointer"}}
+                onMouseEnter={e=>e.currentTarget.style.background=HOVER}
+                onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                <span style={{fontSize:"11px",color:MUTED,letterSpacing:"0.04em",fontWeight:300}}>{String(i+1).padStart(2,"0")}</span>
+                <div>
+                  <div style={{fontSize:"9px",letterSpacing:"0.14em",textTransform:"uppercase",color:MUTED,marginBottom:"3px"}}>{cl(c.category||"development")} · {lv(c.level||"beginner")}</div>
+                  <div style={{fontSize:"15px",fontWeight:300,color:TEXT,letterSpacing:"-0.3px"}}>{c.title}</div>
+                  {c.instructor&&<div style={{fontSize:"11px",color:MUTED,marginTop:"3px"}}>{c.instructor}</div>}
                 </div>
-                <div style={{padding:"12px"}}>
-                  <div style={{color:colors.text,fontWeight:700,fontSize:"13px",marginBottom:"4px",lineHeight:1.3}}>{c.title}</div>
-                  {c.description&&<div style={{color:colors.text3,fontSize:"11px",marginBottom:"8px",lineHeight:1.4,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:"2",WebkitBoxOrient:"vertical" as any}}>{c.description}</div>}
-                  {hasAccess ? (
-                    <Link href={`/courses/${c.slug||c._id}`} style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"rgba(52,211,153,0.1)",border:"1px solid rgba(52,211,153,0.25)",borderRadius:"8px",padding:"8px 10px",textDecoration:"none"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
-                        <i className="fa-solid fa-circle-play" style={{color:"#34d399",fontSize:"12px"}}/>
-                        <span style={{color:"#34d399",fontSize:"12px",fontWeight:700}}>{t("Үзэх","Watch Free")}</span>
-                      </div>
-                      <i className="fa-solid fa-arrow-right" style={{color:"#34d399",fontSize:"10px"}}/>
+                <div style={{display:"flex",alignItems:"center",gap:"12px"}}>
+                  <span style={{fontSize:"11px",color:MUTED}}>
+                    {c.sections?.reduce((a:number,s:any)=>a+(s.lessons?.length||0),0)||0} {t("хичээл","lessons","レッスン","레슨","leçons","Lektionen","课程")}
+                  </span>
+                  {hasAccess?(
+                    <Link href={`/courses/${c.slug||c._id}`} style={{padding:"6px 16px",background:TEXT,color:isDark?"#000":"#fff",fontSize:"11px",fontWeight:500,borderRadius:"100px",textDecoration:"none",whiteSpace:"nowrap" as const,letterSpacing:"0.02em"}}>
+                      {t("Үзэх","Watch","視聴","시청","Voir","Ansehen","观看")}
                     </Link>
-                  ) : (
-                    <Link href="/payment" style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:isDark?"rgba(255,255,255,0.04)":"rgba(0,0,0,0.04)",border:`1px solid ${colors.border}`,borderRadius:"8px",padding:"8px 10px",textDecoration:"none"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:"5px"}}>
-                        <i className="fa-solid fa-lock" style={{color:"#f59e0b",fontSize:"11px"}}/>
-                        <span style={{color:colors.text3,fontSize:"12px"}}>{t("Захиалах","Subscribe")}</span>
-                      </div>
+                  ):(
+                    <Link href="/payment" style={{padding:"6px 16px",border:`1px solid ${RULE}`,color:MUTED,fontSize:"11px",borderRadius:"100px",textDecoration:"none",whiteSpace:"nowrap" as const}}>
+                      {t("Захиалах","Subscribe","登録","구독","S'abonner","Abonnieren","订阅")}
                     </Link>
                   )}
                 </div>
               </div>
-            ))}
+            ))
+          )}
+        </div>
+
+        {/* Bottom CTA */}
+        {!hasAccess&&(
+          <div style={{borderTop:`1px solid ${RULE}`,padding:"40px 0",display:"grid",gridTemplateColumns:"1fr auto",gap:"24px",alignItems:"center"}}>
+            <div>
+              <div style={{fontSize:"18px",fontWeight:300,color:TEXT,letterSpacing:"-0.5px",marginBottom:"6px"}}>
+                {t("Бүх сургалтад хандах эрх авах","Get full access to all courses","すべてのコースにアクセス","모든 강의 이용하기","Accéder à tous les cours","Alle Kurse freischalten","获取所有课程访问权限")}
+              </div>
+              <div style={{fontSize:"12px",color:MUTED,fontWeight:300}}>
+                {t("Сарын захиалгаар бүх сургалт, live хичээл, AI туслагч үнэгүй.","Monthly subscription unlocks all courses, live classes and AI assistant.","月額サブスクで全コース、ライブ、AI無料。","월정액으로 모든 강의, 라이브, AI 무료.","Abonnement mensuel pour tout débloquer.","Monatliches Abo für alles.","月度订阅解锁所有功能。")}
+              </div>
+            </div>
+            <Link href="/payment" style={{padding:"10px 24px",background:TEXT,color:isDark?"#000":"#fff",fontSize:"12px",fontWeight:500,borderRadius:"100px",textDecoration:"none",whiteSpace:"nowrap" as const}}>
+              {t("Захиалах","Subscribe","登録","구독","S'abonner","Abonnieren","订阅")} →
+            </Link>
           </div>
         )}
       </div>
