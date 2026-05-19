@@ -6,6 +6,10 @@ import NavbarWrapper from "@/components/layout/NavbarWrapper";
 export const metadata: Metadata = {
   title: "AuraLearn – Level Up Your Skills",
   description: "Онлайн сургалтын платформ",
+
+  icons: {
+    icon: "/icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
