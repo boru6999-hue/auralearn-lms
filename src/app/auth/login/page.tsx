@@ -42,7 +42,7 @@ export default function LoginPage() {
 
   const socialBtnStyle: React.CSSProperties = {
     flex: 1, height: "40px", padding: "0 12px",
-    background: colors.socialBg,
+    background: isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",
     border: `1px solid ${colors.border}`,
     borderRadius: "8px", color: colors.text, fontSize: "13px", fontWeight: 500,
     cursor: "pointer", display: "flex", alignItems: "center",
@@ -73,11 +73,11 @@ export default function LoginPage() {
     e.currentTarget.style.transform = "translateY(-1px)";
   };
   const hoverOff = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = colors.socialBg;
+    e.currentTarget.style.background = isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)";
     e.currentTarget.style.color = colors.text;
     e.currentTarget.style.borderColor = colors.border;
     e.currentTarget.style.transform = "none";
-    e.currentTarget.style.background = isDark ? colors.socialBg : "#fff";
+    e.currentTarget.style.background = isDark ? isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)" : "#fff";
     e.currentTarget.style.color = isDark ? "#fff" : "#000";
     e.currentTarget.style.borderColor = isDark ? colors.border : "#e0e0e0";
     e.currentTarget.querySelectorAll("svg path").forEach((p: any) => {
@@ -159,9 +159,9 @@ export default function LoginPage() {
               <input type="email" required autoFocus value={email} onChange={e => setEmail(e.target.value)} placeholder="alan.turing@example.com" style={inputStyle}
                 onFocus={e => e.target.style.borderColor = "#555"} onBlur={e => e.target.style.borderColor = colors.border} />
             </div>
-            <button type="submit" style={{ width: "100%", height: "40px", background: colors.btnPrimary, color: colors.btnPrimaryText, border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}
-              onMouseEnter={e => (e.currentTarget.style.background = colors.btnPrimaryHover)}
-              onMouseLeave={e => (e.currentTarget.style.background = colors.btnPrimary)}>
+            <button type="submit" style={{ width: "100%", height: "40px", background: isDark?"#fff":"#1a1a1a", color: isDark?"#000":"#fff", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}
+              onMouseEnter={e => (e.currentTarget.style.background = isDark?"rgba(255,255,255,0.85)":"rgba(0,0,0,0.85)")}
+              onMouseLeave={e => (e.currentTarget.style.background = isDark?"#fff":"#1a1a1a")}>
               {a.continue}
             </button>
           </form>
@@ -186,9 +186,9 @@ export default function LoginPage() {
               <input type="password" required autoFocus value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" style={inputStyle}
                 onFocus={e => e.target.style.borderColor = "#555"} onBlur={e => e.target.style.borderColor = colors.border} />
             </div>
-            <button type="submit" disabled={loading} style={{ width: "100%", height: "40px", background: loading ? colors.bg3 : colors.btnPrimary, color: loading ? colors.text3 : colors.btnPrimaryText, border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer" }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = colors.btnPrimaryHover; }}
-              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = colors.btnPrimary; }}>
+            <button type="submit" disabled={loading} style={{ width: "100%", height: "40px", background: loading ? isDark?"#222":"#ddd" : isDark?"#fff":"#1a1a1a", color: loading ? colors.text3 : isDark?"#000":"#fff", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer" }}
+              onMouseEnter={e => { if (!loading) e.currentTarget.style.background = isDark?"rgba(255,255,255,0.85)":"rgba(0,0,0,0.85)"; }}
+              onMouseLeave={e => { if (!loading) e.currentTarget.style.background = isDark?"#fff":"#1a1a1a"; }}>
               {loading ? a.loading_login : a.login_btn}
             </button>
           </form>
