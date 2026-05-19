@@ -92,7 +92,7 @@ export default function Navbar() {
     <>
       {/* Nav */}
       <nav style={{
-        position: "sticky", top: 0, zIndex: 200,
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 200,
         display: "flex", justifyContent: "center",
         padding: "12px 20px",
         background: BG,
@@ -157,11 +157,11 @@ export default function Navbar() {
             </button>
             {langOpen && (
               <div style={{
-                position: "absolute", top: "calc(100% + 8px)", right: 0,
+                position: "absolute", top: "calc(100% + 6px)", right: 0,
                 background: DROP, border: `1px solid ${DROPB}`,
                 borderRadius: "12px", padding: "5px", minWidth: "140px",
                 boxShadow: isDark ? "0 8px 32px rgba(0,0,0,0.6)" : "0 8px 32px rgba(0,0,0,0.1)",
-                zIndex: 300,
+                zIndex: 9999, maxHeight: "320px", overflowY: "auto",
               }}>
                 {LANGS.map(l => (
                   <button key={l.code} onClick={() => changeLang(l.code)} style={{
@@ -209,7 +209,7 @@ export default function Navbar() {
                   background: DROP, border: `1px solid ${DROPB}`,
                   borderRadius: "12px", padding: "5px", minWidth: "180px",
                   boxShadow: isDark ? "0 8px 32px rgba(0,0,0,0.6)" : "0 8px 32px rgba(0,0,0,0.1)",
-                  zIndex: 300,
+                  zIndex: 9999,
                 }}>
                   <div style={{ padding: "8px 11px 10px", borderBottom: `1px solid ${DROPB}`, marginBottom: "3px" }}>
                     <div style={{ fontSize: "12px", fontWeight: 500, color: TEXT, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
