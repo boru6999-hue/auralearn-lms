@@ -9,14 +9,14 @@ export default function PaymentPage() {
   const { lang } = useLang();
   const { isDark, mounted } = useTheme();
   const { data: session } = useSession();
-  const { currency, symbol, rate } = useCurrency();
+  const { currency, formatPrice } = useCurrency();
 
   const t = (mn:string,en:string,ja="",ko="",fr="",de="",zh="") =>
     lang==="mn"?mn:lang==="ja"?(ja||en):lang==="ko"?(ko||en):lang==="fr"?(fr||en):lang==="de"?(de||en):lang==="zh"?(zh||en):en;
 
-  // Base price in MNT
-  const BASE_MNT = 29900;
-  const price = currency === "MNT" ? BASE_MNT : Math.round(BASE_MNT / rate);
+  // Base price in USD (~$8.67)
+  const BASE_USD = 8.67;
+  const formattedPrice = formatPrice(BASE_USD);
 
   const BANKS = [
     { name:"Khan Bank",    logo:"🏦", color:"#1a5fb4", account:"5000 1234 5678" },
@@ -61,7 +61,7 @@ export default function PaymentPage() {
             </div>
             <div style={{textAlign:"right"}}>
               <div style={{fontSize:"clamp(32px,5vw,44px)",fontWeight:300,color:TEXT,letterSpacing:"-2px",lineHeight:1}}>
-                {symbol}{price.toLocaleString()}
+                {formattedPrice}
               </div>
               <div style={{fontSize:"11px",color:MUTED,marginTop:"4px"}}>
                 / {t("сар","month","月","월","mois","Monat","月")} · {t("хэдийд ч цуцлах","cancel anytime","いつでもキャンセル","언제든 취소","annulable","jederzeit kündbar","随时可取消")}
@@ -135,13 +135,13 @@ export default function PaymentPage() {
             <i className="fa-solid fa-circle-info" style={{color:"#B5863A",fontSize:"13px",marginTop:"1px",flexShrink:0}}/>
             <div style={{fontSize:"12px",color:MUTED,fontWeight:300,lineHeight:1.6}}>
               {t(
-                `Шилжүүлгийн дүн: ${symbol}${price.toLocaleString()} · Гүйлгээний утга: таны имэйл · Баталгаажсаны дараа 24 цагийн дотор эрх идэвхжинэ.`,
-                `Amount: ${symbol}${price.toLocaleString()} · Note: your email address · Access activated within 24 hours of confirmation.`,
-                `金額: ${symbol}${price.toLocaleString()} · メモ: メールアドレス · 確認後24時間以内に有効化。`,
-                `금액: ${symbol}${price.toLocaleString()} · 메모: 이메일 주소 · 확인 후 24시간 내 활성화.`,
-                `Montant: ${symbol}${price.toLocaleString()} · Note: votre email · Activé dans les 24h.`,
-                `Betrag: ${symbol}${price.toLocaleString()} · Verwendungszweck: Ihre E-Mail · Aktivierung innerhalb 24h.`,
-                `金额: ${symbol}${price.toLocaleString()} · 备注: 您的邮箱 · 确认后24小时内激活。`
+                `Шилжүүлгийн дүн: ${formattedPrice} · Гүйлгээний утга: таны имэйл · Баталгаажсаны дараа 24 цагийн дотор эрх идэвхжинэ.`,
+                `Amount: ${formattedPrice} · Note: your email address · Access activated within 24 hours of confirmation.`,
+                `金額: ${formattedPrice} · メモ: メールアドレス · 確認後24時間以内に有効化。`,
+                `금액: ${formattedPrice} · 메모: 이메일 주소 · 확인 후 24시간 내 활성화.`,
+                `Montant: ${formattedPrice} · Note: votre email · Activé dans les 24h.`,
+                `Betrag: ${formattedPrice} · Verwendungszweck: Ihre E-Mail · Aktivierung innerhalb 24h.`,
+                `金额: ${formattedPrice} · 备注: 您的邮箱 · 确认后24小时内激活。`
               )}
             </div>
           </div>
