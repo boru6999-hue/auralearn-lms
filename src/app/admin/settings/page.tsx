@@ -1,115 +1,62 @@
 "use client";
+import { useState } from "react";
 import { useLang } from "@/hooks/useLang";
 import { useTheme } from "@/hooks/useTheme";
-import { useState } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 
-export default function SettingsPage() {
+export default function AdminSettingsPage() {
   const { lang } = useLang();
   const { isDark, mounted } = useTheme();
-  const [s, setS] = useState({siteName:"AuraLearn",siteUrl:"https://auralearn.mn",currency:"MNT",language:"mn",smtpHost:"smtp.resend.com",smtpPort:"587",maintenance:false,regOpen:true});
+  const [saved, setSaved] = useState(false);
 
-  const t=(mn:string,en:string,ja="",ko="",fr="",de="",zh="")=>
-    lang==="mn"?mn:lang==="ja"?(ja||en):lang==="ko"?(ko||en):lang==="fr"?(fr||en):lang==="de"?(de||en):lang==="zh"?(zh||en):en;
+  const t = (mn:string,en:string) => lang==="mn"?mn:en;
 
-  const BG    =isDark?"#0a0a0a":"#f5f5f5";
-  const CARD  =isDark?"rgba(255,255,255,0.04)":"#fff";
-  const BORDER=isDark?"#1e1e1e":"#e5e5e5";
-  const TEXT  =isDark?"#fff":"#000";
-  const MUTED =isDark?"#555":"#888";
-  const INP={width:"100%",height:"38px",background:isDark?"#1a1a1a":"#f0f0f0",border:`1px solid ${BORDER}`,borderRadius:"8px",padding:"0 12px",color:TEXT,fontSize:"13px",outline:"none",boxSizing:"border-box"} as React.CSSProperties;
+  if(!mounted) return null;
 
-  if(!mounted)return<div style={{minHeight:"100vh",background:"#000"}}/>;
+  const BG=isDark?"#0a0a0f":"#F2F0EB",TEXT=isDark?"#fff":"#1a1a1a",
+        MUTED=isDark?"rgba(255,255,255,0.35)":"rgba(0,0,0,0.35)",
+        RULE=isDark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.08)";
+  const INP={width:"100%",background:"transparent",border:"none",borderBottom:`1px solid ${RULE}`,outline:"none",color:TEXT,fontSize:"14px",fontWeight:300,padding:"10px 0",fontFamily:"inherit"} as React.CSSProperties;
 
-  return(
+  const SECTIONS=[
+    {title:t("Платформын мэдээлэл","Platform info"),fields:[
+      {label:t("Платформын нэр","Platform name"),val:"AuraLearn",key:"name"},
+      {label:t("Вэбсайт","Website"),val:"https://auralearn-lms.vercel.app",key:"url"},
+      {label:t("Холбоо барих имэйл","Contact email"),val:"admin@auralearn.com",key:"email"},
+    ]},
+    {title:t("Тохиргоо","Configuration"),fields:[
+      {label:t("Сарын захиалгын үнэ (₮)","Monthly subscription price (₮)"),val:"29900",key:"price"},
+      {label:t("Gemini API key","Gemini API key"),val:"AIza••••••••",key:"gemini"},
+    ]},
+  ];
+
+  return (
     <AdminLayout>
-      <div style={{padding:"28px 32px",background:BG,minHeight:"100vh"}}>
-        <h1 style={{fontSize:"20px",fontWeight:800,color:TEXT,marginBottom:"3px"}}>
-          {t("Тохиргоо","Settings","設定","설정","Paramètres","Einstellungen","设定")}
-        </h1>
-        <p style={{color:MUTED,fontSize:"12px",marginBottom:"24px"}}>
-          {t("Системийн тохиргоо","System Configuration","システム設定","시스템 설정","Configuration système","Systemkonfiguration","系统配置")}
-        </p>
+      <div style={{padding:"40px 48px",background:BG,minHeight:"100vh",maxWidth:"680px"}}>
+        <div style={{marginBottom:"40px",paddingBottom:"24px",borderBottom:`1px solid ${RULE}`}}>
+          <div style={{fontSize:"10px",letterSpacing:"0.16em",textTransform:"uppercase",color:MUTED,marginBottom:"6px"}}>Admin</div>
+          <h1 style={{fontSize:"28px",fontWeight:300,color:TEXT,letterSpacing:"-1px"}}>{t("Тохиргоо","Settings")}</h1>
+        </div>
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"14px"}}>
-          {/* General */}
-          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:"12px",padding:"20px"}}>
-            <h3 style={{color:TEXT,fontSize:"13px",fontWeight:700,marginBottom:"14px"}}>
-              <i className="fa-solid fa-globe" style={{marginRight:"8px",color:MUTED}}/>{t("Ерөнхий","General","一般","일반","Général","Allgemein","常规")}
-            </h3>
-            <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
-              <div><label style={{color:MUTED,fontSize:"11px",display:"block",marginBottom:"4px"}}>{t("Сайтын нэр","Site Name","サイト名","사이트 이름","Nom du site","Websitename","网站名称")}</label>
-                <input value={s.siteName} onChange={e=>setS(x=>({...x,siteName:e.target.value}))} style={INP}/></div>
-              <div><label style={{color:MUTED,fontSize:"11px",display:"block",marginBottom:"4px"}}>URL</label>
-                <input value={s.siteUrl} onChange={e=>setS(x=>({...x,siteUrl:e.target.value}))} style={INP}/></div>
-              <div><label style={{color:MUTED,fontSize:"11px",display:"block",marginBottom:"4px"}}>{t("Валют","Currency","通貨","통화","Devise","Währung","货币")}</label>
-                <select value={s.currency} onChange={e=>setS(x=>({...x,currency:e.target.value}))} style={INP}>
-                  <option value="MNT">MNT — Төгрөг</option>
-                  <option value="USD">USD — Dollar</option>
-                  <option value="JPY">JPY — Yen</option>
-                  <option value="KRW">KRW — Won</option>
-                  <option value="EUR">EUR — Euro</option>
-                </select></div>
-              <div><label style={{color:MUTED,fontSize:"11px",display:"block",marginBottom:"4px"}}>{t("Хэл","Language","言語","언어","Langue","Sprache","语言")}</label>
-                <select value={s.language} onChange={e=>setS(x=>({...x,language:e.target.value}))} style={INP}>
-                  <option value="mn">Монгол</option>
-                  <option value="en">English</option>
-                  <option value="ja">日本語</option>
-                  <option value="ko">한국어</option>
-                  <option value="fr">Français</option>
-                  <option value="de">Deutsch</option>
-                  <option value="zh">中文</option>
-                </select></div>
+        {SECTIONS.map((sec,si)=>(
+          <div key={si} style={{marginBottom:"40px",paddingBottom:"32px",borderBottom:`1px solid ${RULE}`}}>
+            <div style={{fontSize:"10px",letterSpacing:"0.16em",textTransform:"uppercase",color:MUTED,marginBottom:"24px"}}>{sec.title}</div>
+            <div style={{display:"flex",flexDirection:"column",gap:"24px"}}>
+              {sec.fields.map((f,fi)=>(
+                <div key={fi}>
+                  <label style={{fontSize:"10px",letterSpacing:"0.1em",textTransform:"uppercase",color:MUTED,display:"block",marginBottom:"6px"}}>{f.label}</label>
+                  <input defaultValue={f.val} style={INP}/>
+                </div>
+              ))}
             </div>
           </div>
+        ))}
 
-          {/* Email */}
-          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:"12px",padding:"20px"}}>
-            <h3 style={{color:TEXT,fontSize:"13px",fontWeight:700,marginBottom:"14px"}}>
-              <i className="fa-solid fa-envelope" style={{marginRight:"8px",color:MUTED}}/>Email / SMTP
-            </h3>
-            <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
-              <div><label style={{color:MUTED,fontSize:"11px",display:"block",marginBottom:"4px"}}>SMTP Host</label>
-                <input value={s.smtpHost} onChange={e=>setS(x=>({...x,smtpHost:e.target.value}))} style={INP}/></div>
-              <div><label style={{color:MUTED,fontSize:"11px",display:"block",marginBottom:"4px"}}>SMTP Port</label>
-                <input value={s.smtpPort} onChange={e=>setS(x=>({...x,smtpPort:e.target.value}))} style={INP}/></div>
-            </div>
-          </div>
-
-          {/* System */}
-          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:"12px",padding:"20px"}}>
-            <h3 style={{color:TEXT,fontSize:"13px",fontWeight:700,marginBottom:"14px"}}>
-              <i className="fa-solid fa-shield" style={{marginRight:"8px",color:MUTED}}/>{t("Систем","System","システム","시스템","Système","System","系统")}
-            </h3>
-            {[
-              {key:"maintenance",label:t("Засвар горим","Maintenance Mode","メンテナンス","유지보수","Maintenance","Wartungsmodus","维护模式"),desc:t("Сайтыг засвар горимд оруул","Put site in maintenance","","","","","")},
-              {key:"regOpen",label:t("Бүртгэл нээлттэй","Registration Open","登録受付中","회원가입 허용","Inscription ouverte","Registrierung offen","注册开放"),desc:t("Шинэ бүртгэл зөвшөөрөх","Allow new registrations","","","","","")},
-            ].map(item=>(
-              <div key={item.key} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:`1px solid ${BORDER}`}}>
-                <div>
-                  <div style={{color:TEXT,fontSize:"13px"}}>{item.label}</div>
-                  <div style={{color:MUTED,fontSize:"11px"}}>{item.desc}</div>
-                </div>
-                <div onClick={()=>setS(x=>({...x,[item.key]:!(x as any)[item.key]}))}
-                  style={{width:"38px",height:"20px",borderRadius:"10px",background:(s as any)[item.key]?(isDark?"#888":"#333"):"#ccc",cursor:"pointer",position:"relative",transition:"all 0.2s"}}>
-                  <div style={{width:"14px",height:"14px",borderRadius:"50%",background:"#fff",position:"absolute",top:"3px",left:(s as any)[item.key]?"21px":"3px",transition:"all 0.2s"}}/>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Save */}
-          <div style={{background:CARD,border:`1px solid ${BORDER}`,borderRadius:"12px",padding:"20px",display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
-            <h3 style={{color:TEXT,fontSize:"13px",fontWeight:700,marginBottom:"8px"}}>
-              <i className="fa-solid fa-floppy-disk" style={{marginRight:"8px",color:MUTED}}/>{t("Хадгалах","Save Changes","変更を保存","변경 저장","Enregistrer","Speichern","保存更改")}
-            </h3>
-            <p style={{color:MUTED,fontSize:"11px",marginBottom:"14px"}}>
-              {t("Тохиргоог хадгалахын өмнө шалгана уу","Please verify before saving","保存前に確認してください","저장 전 확인하세요","Vérifiez avant d'enregistrer","Vor dem Speichern überprüfen","保存前请验证")}
-            </p>
-            <button style={{width:"100%",background:isDark?"#333":"#000",color:"#fff",border:"none",padding:"11px",borderRadius:"8px",fontWeight:700,cursor:"pointer",fontSize:"13px"}}>
-              <i className="fa-solid fa-check" style={{marginRight:"8px"}}/>{t("Хадгалах","Save","保存","저장","Enregistrer","Speichern","保存")}
-            </button>
-          </div>
+        <div style={{display:"flex",alignItems:"center",gap:"16px"}}>
+          <button onClick={()=>{setSaved(true);setTimeout(()=>setSaved(false),2000);}} style={{padding:"10px 24px",background:TEXT,color:isDark?"#000":"#fff",fontSize:"12px",fontWeight:500,border:"none",cursor:"pointer",borderRadius:"100px",fontFamily:"inherit"}}>
+            {t("Хадгалах","Save changes")}
+          </button>
+          {saved&&<span style={{fontSize:"12px",color:"#22c55e",letterSpacing:"0.04em"}}>✓ {t("Хадгалагдлаа","Saved")}</span>}
         </div>
       </div>
     </AdminLayout>
