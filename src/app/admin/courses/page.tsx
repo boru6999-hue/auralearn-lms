@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import SupabaseUpload from "@/components/SupabaseUpload";
 import { useLang } from "@/hooks/useLang";
 import { useTheme } from "@/hooks/useTheme";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -391,7 +392,7 @@ export default function AdminCoursesPage() {
           <div style={{...modalBox,maxWidth:"360px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
               <div style={{fontSize:"15px",fontWeight:300,color:TEXT}}>{t("Хэсэг нэмэх","Add section")}</div>
-              <button onClick={()=>{setSM(false);setSF({title:""});}} style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:"15px"}}><i className="fa-solid fa-xmark"/></button>
+              <button onClick={()=>{setSM(false);setSF({title:"";}} style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:"15px"}}><i className="fa-solid fa-xmark"/></button>
             </div>
             <div style={{marginBottom:"20px"}}>
               <label style={{fontSize:"10px",letterSpacing:"0.1em",textTransform:"uppercase",color:MUTED,display:"block",marginBottom:"6px"}}>{t("Хэсгийн нэр","Section title")}</label>
@@ -438,13 +439,29 @@ export default function AdminCoursesPage() {
                 <label style={{fontSize:"10px",letterSpacing:"0.1em",textTransform:"uppercase",color:MUTED,display:"block",marginBottom:"6px"}}>
                   {t("Видео URL","Video URL")} <span style={{color:MUTED,fontWeight:300,fontSize:"10px"}}>(YouTube / Drive / Supabase)</span>
                 </label>
-                <input value={lForm.videoUrl} onChange={e=>setLF(p=>({...p,videoUrl:e.target.value}))} style={INP} placeholder="https://youtube.com/watch?v=... or https://...supabase.co/..."/>
+                <input value={lForm.videoUrl} onChange={e=>setLF(p=>({...p,videoUrl:e.target.value}))} style={INP} placeholder="https://youtube.com/watch?v=..."/>
+                <div style={{marginTop:"8px"}}>
+                  <SupabaseUpload
+                    accept="video/*"
+                    folder="videos"
+                    label={t("Видео upload","Upload video")}
+                    onUpload={(url)=>setLF(p=>({...p,videoUrl:url}))}
+                  />
+                </div>
               </div>
               <div>
                 <label style={{fontSize:"10px",letterSpacing:"0.1em",textTransform:"uppercase",color:MUTED,display:"block",marginBottom:"6px"}}>
                   PDF URL <span style={{color:MUTED,fontWeight:300,fontSize:"10px"}}>(Supabase / Drive)</span>
                 </label>
                 <input value={lForm.pdfUrl} onChange={e=>setLF(p=>({...p,pdfUrl:e.target.value}))} style={INP} placeholder="https://...supabase.co/.../file.pdf"/>
+                <div style={{marginTop:"8px"}}>
+                  <SupabaseUpload
+                    accept="application/pdf"
+                    folder="pdfs"
+                    label={t("PDF upload","Upload PDF")}
+                    onUpload={(url)=>setLF(p=>({...p,pdfUrl:url}))}
+                  />
+                </div>
               </div>
             </div>
             <div style={{display:"flex",gap:"8px",marginTop:"24px"}}>
@@ -475,6 +492,3 @@ export default function AdminCoursesPage() {
     </AdminLayout>
   );
 }
-
-
-
