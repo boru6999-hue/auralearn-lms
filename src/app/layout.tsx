@@ -2,14 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import SessionProvider from "@/components/layout/SessionProvider";
 import NavbarWrapper from "@/components/layout/NavbarWrapper";
+import AIFloatButton from "@/components/AiFloatButton";
 
 export const metadata: Metadata = {
   title: "AuraLearn – Level Up Your Skills",
   description: "Онлайн сургалтын платформ",
-
-  icons: {
-    icon: "/icon.png",
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -39,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main style={{ paddingTop: "60px" }}>
             {children}
           </main>
+          <AIFloatButton />
         </SessionProvider>
       </body>
     </html>
