@@ -391,7 +391,7 @@ export default function AdminCoursesPage() {
           <div style={{...modalBox,maxWidth:"360px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
               <div style={{fontSize:"15px",fontWeight:300,color:TEXT}}>{t("Хэсэг нэмэх","Add section")}</div>
-              <button onClick={()=>{setSM(false);setSF({title:""});} style={{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:"15px"}}><i className="fa-solid fa-xmark"/></button>
+              <button onClick={()=>{setSM(false);setSF({title:""});}} style={{{background:"none",border:"none",color:MUTED,cursor:"pointer",fontSize:"15px"}}><i className="fa-solid fa-xmark"/></button>
             </div>
             <div style={{marginBottom:"20px"}}>
               <label style={{fontSize:"10px",letterSpacing:"0.1em",textTransform:"uppercase",color:MUTED,display:"block",marginBottom:"6px"}}>{t("Хэсгийн нэр","Section title")}</label>
@@ -475,4 +475,5 @@ export default function AdminCoursesPage() {
     </AdminLayout>
   );
 }
+
 
