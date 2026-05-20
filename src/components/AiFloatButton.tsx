@@ -41,9 +41,13 @@ export default function AIFloatButton() {
     setMsgs(p=>[...p,{role:"user",text:userMsg}]);
     setLoad(true);
     try {
-      const res = await fetch("/api/ai/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:userMsg})});
+      const chatHistory = [...messages, {role:"user",text:userMsg}];
+      const res = await fetch("/api/ai/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        messages: chatHistory.map(m=>({role:m.role==="assistant"?"assistant":"user",content:m.text})),
+        lang
+      })});
       const data = await res.json();
-      setMsgs(p=>[...p,{role:"assistant",text:data.reply||t("Алдаа гарлаа","Error occurred")}]);
+      setMsgs(p=>[...p,{role:"assistant",text:data.text||data.reply||t("Алдаа гарлаа","Error occurred")}]);
     } catch {
       setMsgs(p=>[...p,{role:"assistant",text:t("Алдаа гарлаа","Error occurred")}]);
     }
@@ -56,7 +60,7 @@ export default function AIFloatButton() {
     try {
       const res = await fetch("/api/ai/quiz",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({topic:quizTopic,count:5})});
       const data = await res.json();
-      setQuiz(data.questions||[]);
+      setQuiz(Array.isArray(data)?data:data.questions||[]);
     } catch {}
     setLoad(false);
   }
@@ -64,14 +68,14 @@ export default function AIFloatButton() {
   async function loadRecs() {
     setRL(true);
     try {
-      const res = await fetch("/api/ai/recommend");
+      const res = await fetch("/api/ai/recommend",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({answers:["programming","beginner","1 hour","get a job"],lang})});
       const data = await res.json();
-      setRecs(data.recommendations||[]);
+      setRecs(Array.isArray(data)?data:data.recommendations||[]);
     } catch {}
     setRL(false);
   }
 
-  const score = quiz.length>0?quiz.filter((q:any,i:number)=>answers[i]===q.answer).length:0;
+  const score = quiz.length>0?quiz.filter((q:any,i:number)=>answers[i]===(q.correct??q.answer)).length:0;
 
   return (
     <>
