@@ -70,7 +70,7 @@ export default function AdminLivePage() {
   async function startSignaling(streamId: string) {
     if(channelRef.current) { channelRef.current.unsubscribe(); }
     const ch = supabase.channel(`live-${streamId}`, {
-      config:{ broadcast:{ self:false } }
+      config:{ broadcast:{ self:false, ack:false } }
     });
 
     ch.on("broadcast",{event:"join"},async({payload}:any)=>{

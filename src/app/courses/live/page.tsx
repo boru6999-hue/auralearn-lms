@@ -78,7 +78,7 @@ export default function LiveViewerPage() {
     };
 
     const ch = supabase.channel(`live-${streamId}`,{
-      config:{ broadcast:{ self:false } }
+      config:{ broadcast:{ self:false, ack:false } }
     });
 
     ch.on("broadcast",{event:"offer"},async({payload}:any)=>{
