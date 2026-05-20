@@ -166,7 +166,7 @@ export default function AIFloatButton() {
                   onKeyDown={e=>e.key==="Enter"&&sendChat()}
                   placeholder={t("Асуулт бичих...","Type a question...","質問を入力...","질문 입력...","Votre question...","Ihre Frage...","输入问题...")}
                   style={{flex:1,background:"transparent",border:`1px solid ${RULE}`,borderRadius:"8px",padding:"8px 12px",color:TEXT,fontSize:"12px",outline:"none",fontFamily:"inherit",fontWeight:300}}/>
-                <button onClick={sendChat} disabled={loading||!input.trim()} style={{width:"34px",height:"34px",border:"none",background:input.trim()?(isDark?"#fff":"#1a1a1a"):"transparent",borderRadius:"8px",cursor:input.trim()?"pointer":"not-allowed",color:input.trim()?(isDark?"#000":"#fff"):MUTED,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,border:`1px solid ${RULE}`}}>
+                <button onClick={sendChat} disabled={loading||!input.trim()} style={{width:"34px",height:"34px",border:`1px solid ${RULE}`,background:input.trim()?(isDark?"#fff":"#1a1a1a"):"transparent",borderRadius:"8px",cursor:input.trim()?"pointer":"not-allowed",color:input.trim()?(isDark?"#000":"#fff"):MUTED,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   <i className="fa-solid fa-paper-plane" style={{fontSize:"12px"}}/>
                 </button>
               </div>
