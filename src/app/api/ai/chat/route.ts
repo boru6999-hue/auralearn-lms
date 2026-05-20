@@ -4,35 +4,31 @@ export async function POST(req: Request) {
   try {
     const { messages, lang } = await req.json();
 
-    const langName =
-      lang === "mn" ? "Mongolian (Монгол)" :
-      lang === "ja" ? "Japanese (日本語)" :
-      lang === "ko" ? "Korean (한국어)" :
-      lang === "fr" ? "French (Français)" :
-      lang === "de" ? "German (Deutsch)" :
-      lang === "zh" ? "Chinese (中文)" : "English";
+    const systemPrompt = `You are AuraLearn AI assistant for an online learning platform.
+IMPORTANT: Always respond in the SAME language the user writes in.
+- If user writes in Mongolian -> respond in Mongolian
+- If user writes in English -> respond in English  
+- If user writes in Japanese -> respond in Japanese
+- If user writes in Korean -> respond in Korean
 
-    const systemPrompt = `Та AuraLearn онлайн сургалтын платформын AI туслагч юм.
-Хэрэглэгчийн асуултад ЗААВАЛ ${langName} хэлээр хариулна уу.
-Хэрэв хэрэглэгч Монгол хэлээр бичвэл Монгол хэлээр хариул.
-Хэрэв хэрэглэгч Англи хэлээр бичвэл Англи хэлээр хариул.
-Хэрэглэгчийн бичсэн хэлийг таньж, тэр хэлээр нь хариулна уу.
+You help with:
+- Language learning (English, Japanese, Korean, Chinese, French, German)
+- Programming (Web, React, Next.js, Python, etc)
+- Study advice and course content explanations
 
-Та дараах чиглэлээр тусалдаг:
-- Хэл сурах (Англи, Япон, Солонгос, Хятад, Франц, Герман)
-- Программчлал (Web, React, Next.js, Python гэх мэт)
-- Сургалтын зөвлөгөө
-- Курсийн агуулга тайлбарлах
+Be friendly, clear and concise. Use backticks for code.`;
 
-Найрсаг, тодорхой, богино хариулт өг. Код бол backtick ашигла.`;
-
-    const contents = messages.map((m: any) => ({
+    const contents = (messages || []).map((m: any) => ({
       role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
+      parts: [{ text: m.content || m.text || "" }],
     }));
 
+    if (contents.length === 0) {
+      return NextResponse.json({ text: "Hello! How can I help you?" });
+    }
+
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -45,10 +41,17 @@ export async function POST(req: Request) {
     );
 
     const data = await res.json();
-    if (data.error) return NextResponse.json({ error: data.error.message }, { status: 500 });
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Алдаа гарлаа";
+
+    if (data.error) {
+      console.error("Gemini error:", data.error);
+      return NextResponse.json({ error: data.error.message }, { status: 500 });
+    }
+
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "Error";
     return NextResponse.json({ text });
+
   } catch (e: any) {
+    console.error("Chat route error:", e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
