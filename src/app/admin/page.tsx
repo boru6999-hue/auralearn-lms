@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useLang } from "@/hooks/useLang";
 import { useTheme } from "@/hooks/useTheme";
-import AdminLayout from "@/components/ai/admin/AdminLayout";
+import AdminLayout from "@/components/admin/AdminLayout";
 
 export default function AdminDashboard() {
   const { lang } = useLang();
